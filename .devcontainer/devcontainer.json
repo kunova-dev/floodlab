@@ -1,0 +1,1 @@
+{"name":"FloodLab","image":"mcr.microsoft.com/devcontainers/python:1-3.12-bookworm","postCreateCommand":"pip install -e '.[dev]' && python scripts/bootstrap.py","forwardPorts":[8501],"portsAttributes":{"8501":{"label":"FloodLab"}}}

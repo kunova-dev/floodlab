@@ -1,0 +1,1 @@
+Small, public, reviewed reference metadata only. Record provenance, acquisition date and license alongside any reference added here. The Piura demo search polygon lives in config/aoi and is not a flood reference extent.

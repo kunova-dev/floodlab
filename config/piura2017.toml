@@ -1,0 +1,28 @@
+[catalogue]
+endpoint = "https://stac.dataspace.copernicus.eu/v1"
+collection = "sentinel-1-grd"
+max_items = 100
+
+[paths]
+cache = "data/cache"
+uploads = "data/user_uploads"
+outputs = "outputs"
+
+[demo]
+aoi = "config/aoi/piura2017.geojson"
+start = "2017-03-01"
+end = "2017-04-30"
+
+[flood]
+water_db = -17.0
+drop_db = -3.0
+min_pixels = 4
+
+[history]
+gap_days = 12
+anomaly_multiplier = 3.0
+minimum_excess = 0.02
+
+[logging]
+level = "INFO"
+
