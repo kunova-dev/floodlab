@@ -1,6 +1,6 @@
 # Architecture
 
-STAGE: Foundation | VERSION: 0.1.0 | STATUS: DRAFT
+STAGE: Foundation | VERSION: 0.4.0 | STATUS: DRAFT
 PURPOSE: Separate reusable Earth observation infrastructure from hazards and application workflows.
 INPUTS: WGS84 polygon AOIs, UTC dates, STAC metadata, analysis-ready arrays, indicator series.
 OUTPUTS: Acquisition metadata, preparation manifests, experimental masks/QC, candidate events.
@@ -10,7 +10,7 @@ TEST STATUS: See STATUS.md for executed verification.
 ```text
 UI (Streamlit) ──> EO core: AOI → catalogue → acquisitions → preparation manifest
                                       │
-                    product access → preprocessing [future adapters]
+                    CDSE openEO → explicit sar_backscatter → downloaded GeoTIFFs + QC
                                       │
                        analysis-ready backscatter + provenance
                                       │
@@ -24,7 +24,7 @@ UI (Streamlit) ──> EO core: AOI → catalogue → acquisitions → preparati
 - `eo_core/aoi.py`: GeoJSON geometry validation, WGS84 bounds and dateline ambiguity rejection.
 - `eo_core/config.py`: typed configuration wrapper, TOML loading and operational validation.
 - `eo_core/catalogue.py`: provider protocol, query construction, bounded STAC access, normalization and defensive space/time filtering.
-- `eo_core/processing.py`: product-access/preprocessing protocols, observation readiness, UUID/timestamp/version provenance manifests. Future openEO, SNAP, analysis-ready services and local GeoTIFF adapters implement these contracts; no adapter is claimed complete.
+- `eo_core/processing.py`: product-access/preprocessing protocols, observation readiness, UUID/timestamp/version provenance manifests. The openEO implementation is in openeo_backend/pair_jobs; the Piura pair completed authenticated processing with numeric QC PASS and unresolved exact source-lineage warnings. SNAP and other adapters remain future work.
 - `hazards/flood/engine.py`: sensor-processing-independent algorithms on analysis-ready arrays, with observed/derived, configuration, assumption and QC/confidence fields.
 - `history/events.py`: validated indicators, independent median/MAD baseline, anomaly grouping and observed peak.
 - `impact`: exposure-intersection protocol and affected-summary contract only.
@@ -39,3 +39,19 @@ Search results retain their original AOI/query even if form controls change. Cha
 ## Extension constraints
 
 Keep generic sensor/AOI functionality in EO core. Processing adapters must report calibration convention (sigma0/gamma0), units, DEM, grid/CRS, masking, orbit/polarization, software versions and product provenance. A future impact implementation must state spatial predicate and boundary/deduplication behavior. Monitoring needs a scheduler, retries, persistent jobs and review policy; the current Watch page describes this architecture only.
+
+
+## v0.2 backend path
+
+`pairs.py` assesses satellite comparability using matching relative orbit, direction, mode, bands and geodesic common AOI coverage. It deliberately does not infer flood timing. `openeo_backend.py` discovers and validates live capabilities, constructs explicit process graphs and handles memory-only OIDC device authentication. `pair_jobs.py` records plans, graphs, capabilities and resumable batch IDs, downloads fixed-name TIFF outputs and writes provenance. `raster.py` computes QC, explicitly aligns grids if needed, and generates shared-scale dB previews. `ui/processing.py` presents plans and state; the terminal worker owns authentication and long-running processing.
+
+Plans and state live under configured ignored runtime directories. Atomic JSON writes let UI refresh safely; an exclusive worker lock prevents concurrent execution of one plan. Jobs are recorded before start and reused on resume. The worker validates graphs before creating jobs; public graph validation is not proof of successful execution. No token/password or refresh cache is written. The download stage stores no signed result URLs in provenance.
+
+Source STAC candidates are recorded separately from actual backend lineage: one-second temporal requests and orbit/mode filters constrain the cube, but the backend does not advertise relative-orbit filtering or exact product pinning. Source identity stays unverified; the worker refuses multiple TIFFs. Numeric QC PASS is possible independently of overall QC WARNING for unresolved lineage. The real Piura run has completed; its engineering checkpoint is PASS while exact source identity and scientific flood interpretation remain DRAFT.
+
+
+## v0.4 reconstruction
+
+EO CORE → PERIL ENGINES → RISK APPLICATIONS remains the boundary. Generic verified context alignment, public STAC pagination and gauge observation contracts live in `eo_core`. Historical-water interpretation, optical classification and evidence states live in `hazards/flood`. The consumer UI uses `reconstruction.reconstruct`, while the v0.3 workflow and outputs remain as a regression reference. No risk/loss implementation is introduced.
+
+Operator preparation scripts download public context/optical extracts with source metadata. Consumer analysis is local and never triggers paid remote jobs or authentication. It reuses verified SAR processing, applies land and historical-water domains, retains independent sensor states and creates a new UUID package. Missing optical/gauge evidence is explicit and nonfatal; missing/unverified mandatory land/history prevents a misleading result. Context is currently bounded to the prepared Piura area. A future service can replace preparation adapters without moving scientific interpretation into the UI.

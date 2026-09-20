@@ -1,0 +1,13 @@
+{
+  "id": "piura-2017", "name": "Piura, Peru · March 2017 flood",
+  "event_date": "2017-03-27", "before_start": "2017-03-01", "before_end": "2017-03-16",
+  "during_start": "2017-03-27", "during_end": "2017-04-04",
+  "interpretation": "March 11 is before the documented late-March escalation, not a proven dry-season baseline. April 4 represents ongoing/remaining inundation, not peak extent. No recession label is established.",
+  "selection_policy": "Exclude mid/late-March baseline candidates because flooding was already developing. Require catalogue geometry, orbit, mode and VV compatibility; rank full coverage and same platform, then nearest event observation and latest baseline. Reuse processed data only after these checks.",
+  "evidence": [
+    {"title":"INDECI: national emergency declaration, March 29", "url":"https://portal.indeci.gob.pe/wp-content/uploads/2019/01/20171221162233.pdf", "finding":"Documents March 27 overflow and escalation from March 25; earlier seasonal emergency already existed."},
+    {"title":"UNOSAT: Radarsat-2 observation, March 24", "url":"https://unosat.org/static/unosat_filesystem/2481/UNOSAT_A3_FL20170317PER_Piura_FloodAnalysis_Portrait.pdf", "finding":"River overflow and wet fields before the March 27 escalation; preliminary, not field validated."},
+    {"title":"Agro Rural: Lower Piura inundation, April 3", "url":"https://www.gob.pe/institucion/agrorural/noticias/526787-equipos-del-sector-agricultura-trabajan-para-reparar-diques-que-rompio-el-rio-piura", "finding":"Reports breached dikes and inundation isolating Lower Piura communities."},
+    {"title":"EUMETSAT: April 4 satellite observation", "url":"https://user.eumetsat.int/resources/case-studies/floods-in-south-america", "finding":"Coarse optical imagery shows water and sediment south of Piura; contextual evidence, not a 20 m flood truth mask."}
+  ]
+}

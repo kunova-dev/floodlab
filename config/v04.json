@@ -1,0 +1,31 @@
+{
+  "reference_grid": "data/cache/openeo/1aa75169-0fca-435b-b97e-8abb27a0d86f/earlier.tif",
+  "bbox": [
+    -80.95,
+    -5.65,
+    -80.45,
+    -5.05
+  ],
+  "baseline_years": [
+    2013,
+    2014,
+    2015
+  ],
+  "baseline_source": "JRC GSW annual 2013-2015 plus occurrence 1984-2015 VER1-0",
+  "land_source": "GSHHG 2.3.7 full-resolution level 1",
+  "sar_water_db": -18.0,
+  "sar_drop_db": -3.0,
+  "min_pixels": 9,
+  "optical_mndwi": 0.0,
+  "optical_cloud_buffer_m": 60,
+  "optical_max_pair_days": 7,
+  "optical_min_usable_fraction": 0.05,
+  "s2_before_window": [
+    "2017-01-01",
+    "2017-02-28"
+  ],
+  "s2_event_window": [
+    "2017-03-27",
+    "2017-04-06"
+  ]
+}

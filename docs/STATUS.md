@@ -1,106 +1,246 @@
-# FloodLab v0.1 formal validation checkpoint
+# FloodLab v0.4 checkpoint — 2026-09-20
 
-STAGE: EO foundation and Piura catalogue investigation
-VERSION: 0.1.0
-STATUS: PASS
-PURPOSE: Accept the engineering foundation within its declared v0.1 scope, not scientific flood-map accuracy.
-INPUTS: Repository source/configuration, independent live CDSE query, bounded asset-access probes, synthetic/mocked automated tests.
-OUTPUTS: Validation matrix, acquisition inventory, asset-access evidence and remaining processing requirements.
-ASSUMPTIONS: No authenticated product access, raster decoding, SAR preprocessing or Piura flood delineation has been completed.
-TEST STATUS: 35 pytest tests passed; import/configuration/bootstrap/startup/static checks passed on Windows, Python 3.12, 2026-09-19.
+Engineering checkpoint: **PASS**. Scientific reconstruction: **DRAFT**. Nothing is FROZEN.
 
-No component is FROZEN. PASS is restricted to the verified behavior listed below. Scientific algorithms and unimplemented services remain DRAFT. This is a working-tree documentation checkpoint: Git currently has zero tracked files and zero commits; no commit or tag was created by this review.
+The real Piura run produced **1,921.24 ha** of experimental land-only new inundation, excluding **229.00 ha** of offshore v0.3 candidates. Zero ocean pixels contribute to terrestrial hectares. Historical water, uncertain baseline, sparse optical agreement and descriptive reference differences remain separate. This is not validated flood extent.
+
+| Component | Status | Real/Mocked | Tests | Limitations |
+| --- | --- | --- | --- | --- |
+| Existing SAR acquisition/processing foundation | PASS | Real cached CDSE backscatter and catalogue; fixture regressions | All original 76 tests retained; input integrity and grid QC | Exact backend product lineage remains unverified; no new remote jobs |
+| Land/ocean domain | PASS | GSHHG 2.3.7 full L1 | Integrity, domain tests; real zero-ocean check for water/flood/comparison exports | Historical shoreline, not guaranteed 20 m coastal truth |
+| Historical-water baseline implementation | PASS | JRC annual 2013–2015 + 1984–2015 occurrence | Class semantics, unknown handling, temporal leakage rejection, land exclusion | Not a March climatology or multi-date SAR baseline |
+| Sentinel-2 preparation and independent evidence | PASS | Real public January 10/March 31 L2A; synthetic failure fixtures | Cloud/shadow/invalid screening, missing/corrupt/cloudy inputs, evidence states | Only 2.064% common clear terrestrial coverage; four-day sensor mismatch |
+| Public catalogue discovery | PASS | Real cached 34-item S2 inventory; mocked pagination test | Complete pagination and local cached read | Operator preparation, not arbitrary global event automation |
+| River/terrain context | PASS | Real HydroRIVERS v1.0 and Copernicus GLO-30 DSM | Real CRS/grid checks, source hashes, diagnostic summaries | No HAND, routing, hydraulic connectivity proof or hard terrain filters |
+| Gauge discovery/observation contract | PASS | Real published station discovery; schema fixtures | Provenance, units, timezone, finite values, rating provenance, optional failure | No usable historical hydrograph or authoritative rating curve retrieved |
+| Gauge time-series integration | DRAFT | Discovery only | Explicit unavailable status verified | No flow/satellite temporal matching claimed |
+| Reference-difference investigation | PASS | Real INDECI polygons | Valid-land categories, exclusive condition buckets, spatial diagnostics | Unknown reference dates/completeness; no accuracy score |
+| Immutable product/export package | PASS | Real 77 MB ZIP; fixture products | UUID uniqueness, checksum/CRC, PNG readability, raster/vector area | Application does not overwrite; not filesystem-enforced archival immutability |
+| Consumer journey | PASS | Real browser + mocked unavailable test | AOI → Analyse → Before/During/Flood footprint; evidence/timeline and ZIP download | Curated Piura event, prepared context required |
+| Scientific flood interpretation | DRAFT | Real multi-evidence experimental result | Sensitivity 627.64–5,025.96 ha; independent evidence explicitly assessed | Sparse optical support, uncertain timing, fixed uncalibrated thresholds and source lineage |
+
+Verification: **87 pytest tests passed** (11.82 s). Ruff check and format check passed for 45 Python files; compileall and git diff --check passed. Bootstrap passed. All 29 modules imported; primary configuration validated; new configuration checks and rejection cases passed. Independent Streamlit startup on port 8502 returned HTTP 200. Browser on port 8501 showed v0.4, completed a real analysis, switched layers, opened evidence/timeline and emitted a complete-analysis download. Third-party Rasterio/Affine pending-deprecation warnings remain (127 in the full test run); they are not scientific QC failures.
+
+Real output validation: 58 payload SHA-256 hashes and archive CRCs passed. Derived GeoTIFF CRS/transforms match. Reprojected GeoJSON area is 1,921.2400000003443 ha versus raster 1,921.24 ha, within the documented 0.04 ha tolerance. The v0.4 terrestrial reference area plus excluded offshore reference area reconciles with the v0.3 reference domain. All 13 original v0.3 payload checksums still match. Git hygiene audit found no tracked/nonignored caches, outputs, satellite products or recognizable credential payloads. No commit or push.
+
+Analysis ID: `3c236bb0-0c6c-4d69-b6f0-ca604bbb84c3`.
+Package: `outputs/analyses/3c236bb0-0c6c-4d69-b6f0-ca604bbb84c3/analysis.zip`.
+ZIP SHA-256: `7aee27e85fe440b8790135ef4056d79a2524ed0c00f9e1a2e2eb979790de71de`.
+
+See [scientific assessment and full changed-file inventory](V04_SCIENTIFIC_ASSESSMENT.md) and [all output checksums](V04_OUTPUT_CHECKSUMS.json). Best next milestone: a dated Piura validation dataset and additional pre-event/event observations, to distinguish missed floodwater from temporal/reference mismatch before broadening to global automation.
+
+---
+
+# FloodLab v0.3 checkpoint
+
+Scientific status: DRAFT. Engineering tests: PASS. Nothing is FROZEN.
+
+Verification: 76 deterministic tests passed (4.62 s); Ruff, compileall and git diff --check passed. Bootstrap passed. All 24 modules imported, configuration validated, and independent Streamlit startup returned HTTP 200. Nine third-party Rasterio/Affine pending-deprecation warnings remain. Real-data execution produced the artifacts documented below; no remote processing was submitted. No commit or push was performed.
+
+| Component | Status | Real/Mocked | Tests | Limitations |
+| --- | --- | --- | --- | --- |
+| Event-window observation selection | PASS | Cached live inventory; fixture tests | Compatible pairs, chronology exclusion, no-pair failures | Curated Piura windows, not automatic event discovery |
+| Local flood inference and exports | PASS | Real v0.2 rasters; deterministic fixtures | Nodata, change, area, vectorization, checksums, provenance | Provisional parameters, no accuracy claim |
+| Event UI | PASS | Real local result; mocked failure tests | Default journey, no technical controls, errors; browser review | New remote processing/authentication not orchestrated here |
+| Independent spatial comparison | PASS | Real INDECI polygons | Category logic and end-to-end fixtures | Unknown reference dates, completeness and sensor independence |
+| Scientific flood footprint | DRAFT | Real satellite-derived experimental result | 2,324.84 ha; sensitivity 758.84–5,273.24 ha | Substantial reference-only extent; no validated accuracy |
+
+See [full v0.3 assessment](PIURA_2017_EVENT.md). The previous v0.2 checkpoint and execution history are preserved below.
+
+# FloodLab v0.2 implementation and validation status
+
+## Result selection correction — 2026-09-20 UTC
+
+A separate new plan (`9ad09067-e319-46df-8b27-0848064f82af`) used empty resource options and failed with the original Orfeo memory allocation error in job `j-2609200255354d20b00a591aa9e0c2fe`. The completed resource-configured pair (`1aa75169-0fca-435b-b97e-8abb27a0d86f`) remains intact; its engineering PASS checkpoint is unchanged.
+
+The UI now lists completed matching plans first, includes their runtime status in each label, and replaces execution instructions with a view-results message for completed plans. The Piura configuration now uses the resource options proven by the successful pair for future plan preparation. Existing plans and their evidence are unchanged. No remote jobs were submitted for this correction. Resource settings do not guarantee success for other workloads.
+
+Validation: full pytest suite 69 passed; Ruff passed. Refresh the app and choose the completed QC WARNING plan to view its previews without authentication or further processing.
+
+## Completed processing checkpoint — 2026-09-20 UTC
+
+Authenticated execution completed at 02:34:43 UTC with runtime state `QC WARNING`. Both existing jobs were reused. The saved provenance contains both output checksums, and independent local checksum verification matches both files. No additional processing retry is needed.
+
+| Component | Status | Real/Mocked | Tests | Limitations |
+| --- | --- | --- | --- | --- |
+| CDSE pair execution, download and provenance | PASS | Real authenticated jobs and backscatter rasters | Completed run; both SHA-256 checksums verified | Exact source-product lineage unavailable in saved result metadata |
+| Pair numeric QC | PASS | Real March 11 / April 4 requested pair | Same grid; footprint overlap 100%; common valid positive pixels 99.8017%; no alignment required | Numeric QC does not establish scientific accuracy |
+| Recovery implementation | PASS | Real recovered run plus mocked fault tests | Latest code suite: 69 passed; Ruff passed | Not all remote/network failures can be reproduced locally |
+| Exact source identity and relative orbit | DRAFT | Catalogue candidates and real backend requests | Provenance retains expected IDs and warnings | Backend source IDs empty; actual input orbit not independently verified |
+| Flood interpretation and mask validation | DRAFT | No validated flood mask | No accuracy claim | Event chronology, SAR quality review, masking and independent reference validation remain |
+
+The engineering checkpoint for the real backscatter pair is PASS. Runtime `QC WARNING` is retained honestly: exact product lineage/relative orbit are unverified, zero values are conservatively excluded, and event interpretation/scientific accuracy remain unvalidated. The one-second timestamp warning is a general request limitation; it did not prevent this run from producing outputs. No component is FROZEN.
+
+Best next milestone: verify the input source lineage and flood-event chronology, and visually review both backscatter rasters before defining or validating a flood classifier. This checkpoint does not authorize or claim a validated flood footprint.
+
+The earlier entries below are historical; their incomplete-run status is superseded by this checkpoint.
+
+## Local file recovery update — 2026-09-20 UTC
+
+The latest run failed with PermissionError during the later download phase. The precise failing operation was not recorded. Subsequent local checks found a complete 41,573,020-byte later staging TIFF; every raster block is readable. Directory write/rename/delete probes succeeded. A transient Windows file lock is plausible, but its owner/cause is unconfirmed.
+
+Recovered this file as `later.tif` without network access or remote job changes. An ignored `later.pending.json` records its SHA-256, saved later job association and explicit local-recovery origin; the remote asset key and source identity were not independently verified. The next authenticated execution reconciles the asset key and completes normal provenance. It can reuse both local rasters by checksum. State remains FAILED as the historical execution outcome until that run finishes.
+
+Local real pair QC saved in `local-pair-qc.json`: matching EPSG:32717 20 m grids, footprint overlap 1.0, common positive valid fraction 0.9980169688, numeric QC PASS. Both rasters have one VV band and zero nonfinite/unmasked nonpositive pixels. This is an engineering data-quality result, not validation of a flood mask or source lineage.
+
+File promotion now retries PermissionError five times with bounded backoff. A durable staging receipt prevents a rename/receipt-write failure from forcing a new transfer. Sanitized errno/winerror fields aid future diagnosis. No credentials or downloaded data are tracked by Git.
+
+| Component | Status | Real/Mocked | Tests | Limitations |
+| --- | --- | --- | --- | --- |
+| Real pair numeric QC | PASS | Real downloaded CDSE rasters | Every block read; common valid coverage and grids checked | Source identity and event interpretation unvalidated |
+| File-lock recovery | PASS | Real local recovery; mocked lock regression | Full suite: 69 tests passed; Ruff passed | Lock cause unconfirmed |
+| End-to-end run and provenance | DRAFT | Real jobs and rasters | Local QC complete | Fresh authenticated metadata reconciliation still required |
+
+This update supersedes the incomplete-later-download status below. Resume the same plan; do not create another processing retry.
+
+## Download recovery update — 2026-09-20 UTC
+
+The resource retry reached raster downloads for both saved jobs: earlier `j-2609200206284924b65ebc468a9f71dd` and later `j-2609200210494a36874b3e6aaf61ff02`. The worker downloads only after observing remote `finished`; this is local execution evidence, not a new live status check. The earlier raster is 41,569,781 bytes and readable; `later.download` contains only 10,000,000 bytes after `ChunkedEncodingError`. This failure occurred during transfer, rather than authentication or the previously diagnosed Orfeo memory failure.
+
+Earlier raster QC: 2773 x 3319 pixels, one VV band, EPSG:32717, 20 m grid, valid positive fraction 0.9980169688, zero nonfinite or unmasked nonpositive pixels, nodata value 0. The later raster and pair QC remain unverified. These are backscatter data, not a flood footprint.
+
+Download recovery now retries transient connection/timeout/chunked-stream failures three times, restarting each transfer from zero with a fresh results lookup. All raster blocks must be readable before atomic promotion. A completed-file receipt binds the checksum to job ID and asset key, allowing safe reuse after a later failure. Files from older runs without receipts are downloaded once again to establish this binding. Errors identify the failed phase without exposing raw URLs or credentials. Saved remote jobs are reused; finished jobs are not restarted.
+
+| Component | Status | Real/Mocked | Tests | Limitations |
+| --- | --- | --- | --- | --- |
+| Download recovery | PASS | Real transfer implementation; mocked interruption tests | Full suite: 67 passed | Live recovery still requires user login |
+| Earlier backscatter output | PASS | Real CDSE output | Full raster read and numeric QC | Exact source lineage and flood interpretation remain unvalidated |
+| Complete pair and scientific validation | DRAFT | Later transfer incomplete | Pair recovery covered with fixtures | Await later raster, pair QC and provenance |
+
+Resume the existing plan with the command below. It reuses both saved jobs. No new plan or remote processing retry was prepared for this transfer failure.
+
+```powershell
+.\.venv\Scripts\python.exe scripts/process_pair.py --plan "data\cache\openeo\1aa75169-0fca-435b-b97e-8abb27a0d86f\plan.json"
+```
+
+The entries below are historical and superseded by this update where their execution status differs.
+
+## Resource retry update — 2026-09-20 UTC
+
+Read-only diagnostics now establish the baseline failure: Orfeo Toolbox/ITK could not allocate image memory while processing the expected March 11 VV COG product. The final `Too many soft errors (0.25 > 0.1)` was a consequence. This is evidence that the expected baseline product reached SAR processing, not evidence of a successfully calibrated output. No later job was created.
+
+Added validated, serialized resource `job_options`, forwarded to openEO `create_job`; legacy plans retain backend defaults. Created a separate resource-only retry at `data/cache/openeo/1aa75169-0fca-435b-b97e-8abb27a0d86f/plan.json`. The original failed plan, job ID and diagnostic file are preserved. The retry explicitly links to them and starts with an empty job map.
+
+Retry options: `python-memory=8G`, `executor-memory=2G`, `executor-memoryOverhead=2G`, `executor-cores=1`, `task-cpus=1`, `max-executors=2`. The memory request is a proposed remedy, not proven sufficient or guaranteed accepted. No job was submitted during preparation. AOI, pair, one-second temporal intervals, bands, coefficient, DEM, output grid, resampling and soft-error threshold are unchanged. The soft-error threshold is not relaxed and missing tiles are not accepted as successful output.
+
+The [official CDSE job configuration documentation](https://documentation.dataspace.copernicus.eu/APIs/openEO/job_config.html) identifies python-memory as the memory allocation used for SAR backscatter tasks. The retry increases per-task resources while limiting worker count; actual credit consumption is backend-dependent.
+
+Validation: **65 tests passed in 9.93 s**, including option forwarding/validation and preservation of old evidence and identical process graphs across a resource-only retry. Backend audit remains **DRAFT** until successful authenticated processing and QC.
+
+Run the following from the repository root and complete a fresh CDSE device login:
+
+```powershell
+.\.venv\Scripts\python.exe scripts/process_pair.py --plan "data\cache\openeo\1aa75169-0fca-435b-b97e-8abb27a0d86f\plan.json"
+```
+
+This command creates new retry jobs after authentication and may consume CDSE credits. Do not use the old failed plan as the retry. Future terminal failures automatically save redacted job errors for review.
+
+
+## Latest execution update — 2026-09-20 UTC
+
+This update supersedes the initial unauthenticated handoff recorded below. The user's terminal shows successful OIDC authorization on two attempts after an initial device-login timeout. Local state records baseline job `j-2609200149524d28a29c3e08c8b7c1b3`, no later job, and FAILED. The worker's terminal-job branch raises the reported RuntimeError for error/canceled status. Re-running retained the same job ID; it did not submit a fresh baseline job.
+
+The underlying remote error is **not yet known**: the old handler discarded the message and no access token was persisted. Added `--diagnose`, which authenticates for read-only status/error-log retrieval and never creates or starts jobs. Backend log messages have URLs, bearer/JWT tokens and common credential fields redacted before storage/display in ignored `job-errors.json`. Future terminal-job failures preserve these diagnostics automatically. Raw authentication/HTTP exception text remains excluded.
+
+Validation after this fix: **58 tests passed in 11.26 s**, including read-only/no-resubmission, terminal failure reporting, redaction and unavailable-log handling. Ruff and compileall passed. Backend remains **DRAFT**; no successful raster output has been established. A fresh user device login is required to retrieve the private job errors and determine the processing fix. No speculative scene/filter change or new processing job was made during diagnosis.
+
+
+STAGE: First CDSE openEO processing path and Piura pair
+VERSION: 0.2.0
+STATUS: DRAFT
+PURPOSE: Produce and inspect real analysis-ready backscatter after explicit user authentication; never claim a validated flood extent.
+INPUTS: Real Piura STAC inventory, runtime openEO capabilities, user-selected compatible pair, CDSE OIDC session.
+OUTPUTS: Implemented pair plans/process graphs/job lifecycle, cached raster outputs after execution, QC and provenance, UI previews.
+ASSUMPTIONS: Authentication, actual jobs, output lineage and real-raster QC remain unverified until the user completes device login and execution.
+TEST STATUS: 54 local tests passed; public capabilities and both selected-pair graphs validated. No authenticated job was submitted.
+
+**Backend audit status remains DRAFT.** Public connectivity and mocked tests do not qualify it for PASS. Nothing is FROZEN. The existing v0.1 engineering PASS components remain PASS within their original scope.
+
+## Baseline and local verification
+
+- Began from clean committed v0.1 `062bf7a` (FloodLab v0.1 — EO foundation and Piura catalogue). Ran the unchanged test suite **before modifications: 35 passed in 2.76 s**. The historical validation report is preserved in `STATUS_v0.1.md`; its zero-commit statement describes that earlier review, not the current repository.
+- Final complete suite: **54 passed in 8.78 s**. New tests mock openEO and use synthetic GeoTIFFs; no test authenticates, downloads satellite products or consumes processing credits.
+- Tests cover capabilities, OIDC state/no token storage, submission guards, orbit/band/coverage compatibility, explicit graphs, QC/nodata/preview scaling, grid mismatch/alignment, provenance checksums, failure redaction, resume without duplicate submission, runtime-path constraints and the UI plan/authentication handoff.
+- Bootstrap: all standard runtime directories OK.
+- Import check: **18 package modules** imported; compileall passed. Streamlit emits its expected bare-mode import warning outside a session.
+- Ruff checks and formatting checks passed; dependency consistency check passed. Editable package metadata updated to 0.2.0 with openEO 0.52.0 and Rasterio 1.5.1 in this environment.
+- Independent Streamlit startup on localhost port 8502 returned `/_stcore/health` **HTTP 200, ok**. The owned smoke process was stopped afterward. AppTest executes the app and new plan workflow independently of that health check. No real-output visual inspection is possible before processing produces rasters.
+- Public validation initially exposed a backend requirement for UTC timestamps ending in `Z`; this was fixed and both graphs revalidated. A UI regression test exposed GeoJSON tuple/list comparison after persistence; recovery now compares actual geometries.
+- Git inspection: generated plans/capability records remain ignored under `data/cache/openeo`; startup logs remain under ignored `outputs`. No credential/token files or satellite products are tracked. `.openeo` and token-cache patterns are additionally ignored. No credentials were obtained or saved. No new commit/push was performed.
 
 ## Validation matrix
 
-| Component | Status | Real/Mocked | Tests | Limitations |
+| Component | Status | Real / mocked | Tests | Limitations |
 |---|---|---|---|---|
-| Package, installation and imports | PASS | Real local installation | All 13 package modules imported; compileall; pip check | Editable source checkout; dependency ranges rather than a scientific lockfile; Python 3.11 not separately exercised |
-| TOML configuration and path resolution | PASS | Real Piura configuration | Valid config/AOI loaded; invalid endpoint, numeric and threshold regression tests | Fixed default config path in UI; values stored in dicts; custom cache directories are not automatically created |
-| AOI/GeoJSON validation | PASS | Real demo polygon; synthetic invalid geometries | Roundtrip, geometry/bounds/dateline and malformed-input tests | Search rectangle, not observed flooding; dateline regions require splitting; not a geodetic area calculator |
-| Temporal query and STAC discovery | PASS | LIVE Copernicus CDSE | Mock query/spatial/time-filter tests plus independent live query below | Capped at 100; archive/provider completeness not independently established; a search is not a flood-event census |
-| Sentinel-1 normalization and asset discovery | PASS | Real returned product metadata | Orbit/polarization/missing-field tests; real assets inspected | Asset URLs are advertised metadata, not proof of readable calibrated backscatter |
-| Readiness and preparation manifests | PASS | Real metadata, local serialization; mock fixtures in tests | Readiness/serialization and selection-persistence checks | Metadata comparability only; no backend submission, download or preprocessing; manifest timestamp represents creation, not a retained raw catalogue-response timestamp |
-| Streamlit History/Lab journey | PASS | Real application and live service; mocked service/map in deterministic tests | AppTest navigation/demo/search failure/selection tests; independent server health smoke | Drawing controls present but manual drawing/upload/browser combinations not exhaustively tested; external map tiles require network |
-| Product access | DRAFT | Protocol only; real unauthenticated probes | All ten VV HTTPS URLs returned HTTP 401 | No authenticated download or S3 access tested; actual raster readability and availability after authentication unverified |
-| SAR preprocessing backends | DRAFT | Architectural protocols only | Imports only | No SNAP, openEO, analysis-ready service or local GeoTIFF ingestion implementation |
-| Flood array algorithms | DRAFT | Real numerical implementation; SYNTHETIC input tests | dB, threshold, change, exclusion, cleanup, area, Otsu tests pass | Experimental science; assumes externally verified calibration/grid/units; not connected to catalogue imagery; no real flood output or accuracy assessment |
-| Historical event engine | DRAFT | Real generic grouping; SYNTHETIC series | Baseline/anomaly/gap/peak tests pass | No real Piura indicator series or UI event catalogue; temporal clusters do not prove continuous inundation or exact onset/recession |
-| Permanent-water reference | DRAFT | Boolean-array input interface only | Synthetic exclusion and shape validation | No provider, real reference layer, alignment or provenance ingestion |
-| Flood Watch | DRAFT | UI architectural shell | Page renders | No scheduler, automatic ingestion, alerts or current monitoring |
-| Impact | DRAFT | Protocol and UI shell | Import/page checks | No spatial intersection execution, exposure ingestion or financial losses |
-| Bootstrap and runtime isolation | PASS | Real filesystem operations | Repeated bootstrap, preservation and path-conflict tests | Standard directories only; no cache implementation or job store |
-| Git hygiene | PASS | Real index/history/ignore inspection | Zero tracked files/commits; ignore probes; candidate-file and credential-pattern review | Entire implementation remains untracked; pattern scan is not a formal secret-scanner guarantee |
-| CI and Codespaces | DRAFT | Real configuration files, not executed remotely | YAML/JSON/configuration inspected; corresponding local commands pass | GitHub Actions and devcontainer build not executed |
-| Documentation/scientific boundaries | PASS | Real source/documentation review | Architecture, methodology, decisions, README and warnings inspected | Engineering acceptance only; no scientific certification |
+| v0.1 AOI/configuration/STAC/manifest foundation | PASS | Existing real implementation; live CDSE inventory | Original 35 tests retained | Original scientific limits unchanged |
+| Pair comparability | PASS | Real live footprints/metadata; synthetic rejection tests | Orbit/direction/mode/bands/order/geodesic coverage | Date interpretation remains unvalidated; footprint is not valid-raster coverage |
+| Public openEO discovery | PASS | Real public CDSE services | Runtime process, collection, DEM, format, OIDC checks | Advertised capability is not proof of execution |
+| Process graph construction | PASS | Real graphs accepted by public validator | Explicit single sigma0 process, DEM, UTM grid and temporal filters | Exact source ID/relative-orbit filtering is not established |
+| Authenticated openEO backend | DRAFT | Implemented real client; tests mock login/jobs | State, no persistent refresh token, errors and submission checks | User device authentication and actual jobs not performed |
+| Job download/provenance pipeline | DRAFT | Implemented real job APIs; synthetic result tests | Checksums, native/aligned QC, resume and state files | Real job output structure, availability and lineage unverified |
+| Raster QC/alignment | PASS | Real Rasterio numerical implementation, synthetic fixtures | Masks, zeros/nonfinite values, statistics, overlap, explicit warp | No real satellite-output QC yet; sampling and CRS assumptions documented |
+| Flood Lab plan/state/preview UI | PASS | Real app; deterministic AppTest | Existing navigation plus new plan creation/auth handoff | Preview tested with synthetic arrays only; real output pending |
+| Flood classification/history | DRAFT | Existing experimental algorithms | Existing tests retained | Not invoked by v0.2 processing; no flood footprint or real indicator series |
+| Watch/Impact | DRAFT | Unchanged shells/interfaces | Existing checks retained | No new monitoring, exposure or loss functionality |
 
-## Executed verification and small fixes
+## Public backend evidence
 
-- Reviewed every source module, both test modules, scripts, app entry point, package metadata, operational/demo configuration, ignore rules, CI/devcontainer/Streamlit settings, environment example and repository documentation. Runtime output and installed third-party dependencies are not application source.
-- `python scripts/bootstrap.py`: all four standard folders OK; existing files preserved.
-- `python -m pytest -q`: **35 passed in 1.67 seconds** after fixes (previous suite: 24 tests).
-- Imported **13 package modules** via pkgutil/importlib; UI import emits Streamlit's expected bare-mode ScriptRunContext warning, not an import error.
-- Explicit `load_config` and `AOI.read`: valid `sentinel-1-grd` configuration and bounds `(-80.95, -5.65, -80.45, -5.05)`.
-- Launched a separate Streamlit process on localhost port 8502; `/_stcore/health` returned **HTTP 200, `ok`**; terminated only that owned smoke-test process. AppTest separately executes app code, since health alone does not validate rendered application logic. The existing user app on port 8501 was not stopped.
-- Ruff checks, compileall and pip dependency checks passed.
-- Small fixes only: reject nonfinite event parameters, noninteger operational counts, nonnegative change thresholds and malformed/credential-bearing endpoint URLs; normalize malformed GeoJSON input failures so the UI reports validation errors; catch configuration type errors in UI; repair a garbled dateline error string. Added 11 regression cases. No new processing functionality or architectural redesign.
+Checked on 2026-09-19 without authentication or processing submission:
 
-## Live Piura search provenance
+- Configured endpoint: `https://openeo.dataspace.copernicus.eu`.
+- Resolved API: `https://openeo.dataspace.copernicus.eu/openeo/1.2/`; API **1.2.0**.
+- Backend version: **0.73.0a17.dev20260915+72**; full advertised capabilities saved locally.
+- `SENTINEL1_GRD`, requested `VV`, `COPERNICUS_30`, GTiff output and OIDC providers confirmed.
+- Required processes confirmed: load_collection, sar_backscatter, resample_spatial, filter_spatial, save_result and eq.
+- SAR coefficient enum advertises **sigma0-ellipsoid**. The process describes linear-scale output and bilinear DEM/backscatter interpolation via Orfeo Toolbox.
+- Selected earlier and later graph validation responses: **[] and []** (no validation errors).
+- These are real service responses. There are **no real processed rasters**, no real job IDs and no authenticated execution results to report.
 
-**The acquisitions displayed in the prior Piura browser journey came from a LIVE Copernicus query, not sample/mock data.** Source review confirms the production UI calls `StacCatalogue.search`, which uses `pystac_client.Client.open` and the provider's collection/search services. There is no production sample-result fallback. Mocks appear only in tests. The independent repeat query below returned the same ten product identifiers as the previously inspected browser results; an existing browser session is a snapshot of its last query, not a continuously refreshing feed.
+Official references: [CDSE radar ARD example](https://documentation.dataspace.copernicus.eu/notebook-samples/openeo/Radar_ARD.html), [OIDC authentication](https://documentation.dataspace.copernicus.eu/APIs/openEO/authentication.html), [processing implementation notes](https://documentation.dataspace.copernicus.eu/APIs/openEO/openeo_processing.html).
 
-Repeat query recorded at **2026-09-19T19:33:21.646555+00:00**.
+## Piura pair review
 
-- AOI: `config/aoi/piura2017.geojson`, **PIURA 2017 DEMO AOI — NOT AUTHORITATIVE FLOOD EXTENT**.
-- WGS84 polygon ring, longitude/latitude: `[-80.95,-5.65] → [-80.45,-5.65] → [-80.45,-5.05] → [-80.95,-5.05] → [-80.95,-5.65]`.
-- Requested UTC interval: **2017-03-01T00:00:00Z through 2017-04-30T23:59:59.999999Z**, inclusive.
-- Provider: Copernicus Data Space Ecosystem public STAC, `https://stac.dataspace.copernicus.eu/v1`.
-- Collection: **`sentinel-1-grd`**; verified at runtime using the collection endpoint.
-- Search intersects the AOI; adapter also checks returned geometry and acquisition timestamp.
-- Returned: **10 acquisitions** with cap 100, so the configured cap was not reached. Two adjacent acquisitions occur on April 1; there are nine distinct acquisition dates. No claim of complete mission/archive coverage.
+AOI and date search remain the v0.1 demonstration: longitude -80.95 to -80.45, latitude -5.65 to -5.05, WGS84, March 1–April 30, 2017. The label remains **DEMO AOI — NOT AUTHORITATIVE FLOOD EXTENT**. A fresh real STAC query returned the same ten acquisitions. Thirteen pair combinations passed the configured 80% common-footprint threshold and metadata requirements.
 
-| Acquisition timestamp (UTC) | Orbit | Relative orbit | Polarization | Product identifier |
-|---|---|---|---|---|
-| 2017-03-11T23:43:11.173270Z | ascending | 91 | VV, VH | `S1B_IW_GRDH_1SDV_20170311T234311_20170311T234336_004667_008247_7495_COG` |
-| 2017-03-20T11:01:08.214928Z | descending | 40 | VV | `S1B_IW_GRDH_1SSV_20170320T110108_20170320T110133_004791_0085E7_35ED_COG` |
-| 2017-03-23T23:43:11.351606Z | ascending | 91 | VV, VH | `S1B_IW_GRDH_1SDV_20170323T234311_20170323T234336_004842_00875E_3C25_COG` |
-| 2017-03-26T11:01:59.942978Z | descending | 40 | VV | `S1A_IW_GRDH_1SSV_20170326T110159_20170326T110224_015862_01A234_10B8_COG` |
-| 2017-04-01T11:01:01.646277Z | descending | 40 | VV, VH | `S1B_IW_GRDH_1SDV_20170401T110101_20170401T110126_004966_008AF0_1D06_COG` |
-| 2017-04-01T11:01:26.646788Z | descending | 40 | VV, VH | `S1B_IW_GRDH_1SDV_20170401T110126_20170401T110157_004966_008AF0_2236_COG` |
-| 2017-04-04T23:43:11.844763Z | ascending | 91 | VV, VH | `S1B_IW_GRDH_1SDV_20170404T234311_20170404T234336_005017_008C6C_B798_COG` |
-| 2017-04-13T11:01:08.953335Z | descending | 40 | VV | `S1B_IW_GRDH_1SSV_20170413T110108_20170413T110133_005141_008FF2_B0BD_COG` |
-| 2017-04-16T23:43:12.365925Z | ascending | 91 | VV, VH | `S1B_IW_GRDH_1SDV_20170416T234312_20170416T234337_005192_00916D_569A_COG` |
-| 2017-04-28T23:43:12.849977Z | ascending | 91 | VV, VH | `S1B_IW_GRDH_1SDV_20170428T234312_20170428T234337_005367_00968B_390D_COG` |
+| Candidate earlier → later | Series | Common AOI footprint | Interpretation |
+|---|---|---|---|
+| **March 11 → April 4** | Sentinel-1B, ascending relative orbit 91, IW, VV (both also advertise VH) | 100% | Prepared primary temporal hypothesis; same platform/geometry, wider baseline separation |
+| March 23 → April 4 | Sentinel-1B, ascending relative orbit 91, IW, VV | 100% | Technically strong shorter-gap alternative; earlier date may already be affected, unverified |
+| March 20 → April 13 | Sentinel-1B, descending relative orbit 40, IW, VV | 100% | Separate same-platform series; later date may represent a different event phase, unverified |
+| March 20 → March 26 | Sentinel-1B → Sentinel-1A, descending relative orbit 40, IW, VV | 100% | Cross-platform warning; not selected merely because the dates are close |
+| March 20 → either April 1 scene | Descending relative orbit 40, IW, VV | 40.8% / 59.2% | Individually rejected below 80%; no silent swath mosaic |
 
-## Can the raster assets actually be accessed?
+These are **satellite comparability assessments, not independent flood-timing evidence**. Independent event evidence has not been incorporated, so no candidate can yet be called the scientifically established pre-flood/during-flood pair. The primary hypothesis is configurable in `[pair_demo]`; generic ranking uses coverage/platform before time gap. Ascending and descending series are never mixed into a compatible pair.
 
-**Not anonymously through the tested URLs in this environment.** All ten acquisitions advertise a VV TIFF asset with an S3 href and HTTPS alternative. For each acquisition, a real unauthenticated streaming GET against the advertised VV HTTPS URL requested `Range: bytes=0-15` with bounded timeouts. **All ten returned HTTP 401 Unauthorized; zero raster bytes were read.** No tokens were supplied and no authentication bypass was attempted. VH, archives and S3 were not separately fetched. A 401 confirms an access barrier, not successful product retrieval or proof that an authenticated account will be able to obtain the product.
+Prepared primary candidate product IDs:
 
-The catalogue describes these measurement assets as **amplitude**, stored as uint16 COG TIFFs, with calibration/noise annotations advertised separately. They are not verified analysis-ready sigma0/gamma0 backscatter. Do not feed their digital numbers into `to_db`, which expects already-calibrated linear power. COG is a storage layout, not a scientific processing level.
+- Earlier: `S1B_IW_GRDH_1SDV_20170311T234311_20170311T234336_004667_008247_7495_COG`, `2017-03-11T23:43:11.173270Z`.
+- Later: `S1B_IW_GRDH_1SDV_20170404T234311_20170404T234336_005017_008C6C_B798_COG`, `2017-04-04T23:43:11.844763Z`.
 
-The metadata and access-probe record is retained locally in ignored `outputs/validation-live.json`; the bounded probe script and startup log are also in ignored `outputs/`. This document retains the public acquisition inventory so the review does not depend on committing generated output.
+## Scientific limits and expected provenance
 
-## Git/security evidence
+The graph calls sar_backscatter once with sigma0-ellipsoid, COPERNICUS_30 and noise removal. This configures CDSE on-demand processing; FloodLab does not recalibrate the resulting power arrays. We request DEM-based orthorectification and do **not** claim gamma0 terrain flattening. The requested output grid is EPSG:32717 at 20 m with explicit bilinear resampling for this Piura AOI.
 
-`git ls-files` returned **zero paths** and `git rev-list --all --count` returned **0**. Therefore no credentials, caches, satellite products, user data or generated outputs are tracked in the index or reachable commit history. All application files are currently untracked. The largest nonignored candidate at review time was the UI module, approximately 11 KB; no large satellite files were among candidates. Cache and user-upload folders contained no files.
+The backend does not advertise `sat:relative_orbit` filtering. Requests use a one-second acquisition-start interval plus advertised direction/mode properties. Public validation accepts those graphs, but execution may still produce no data or use a differently indexed source. Exact source-product identity is therefore **unverified**. Expected catalogue IDs and recoverable backend source IDs are separate provenance fields. No automatic interval widening or scene substitution occurs. Multiple returned TIFFs are rejected for review.
 
-`git check-ignore` confirmed exclusions for `.env`, `.streamlit/secrets.toml`, `.venv/pyvenv.cfg`, cache TIFFs, user exposure CSVs, generated validation JSON, SAFE directories and TIFF products. Review of the nonignored candidates and a targeted private-key/token-pattern scan found no embedded credentials; `.env.example` contains comments only. This is current-state evidence, not a guarantee that arbitrary future file names or secrets will be ignored. No Git commit/tag, credential configuration or exposure-data upload was performed.
+After successful execution, provenance records the AOI, acquisition metadata, requested time/filter graph, coefficient/DEM, requested and actual CRS/resolution, nodata conventions, backend version/capabilities, processing timestamp, FloodLab version, configuration, job IDs, file checksums, native QC, any alignment, final QC and warnings. Signed result URLs and raw HTTP/auth errors are excluded. Source/date-interpretation warnings keep overall status at QC WARNING even when numerical raster QC passes.
 
-## Scientific honesty and remaining processing
+The backend's documented zero/nodata ambiguity is retained as a warning. Validity requires mask + finite + positive linear power. Grid differences trigger recorded bilinear alignment of the later raster to the earlier one, retaining native files. No flood classification is performed. Before a scientific flood result, verify actual input lineage, valid coverage, preprocessing conventions, independent event dates and classification/reference accuracy.
 
-**No code or documentation claims that discovered Sentinel-1 GRD is a flood footprint.** The Piura polygon is labelled a demo search area. Catalogue discovery is implemented in EO core; raw/product access and preprocessing are unimplemented protocols; flood classification accepts externally prepared arrays. The UI retains `AWAITING_PREPROCESSING` (an operational job state, not an audit status).
+## Authentication status and exact user action
 
-Before a scientifically defensible mask can be produced:
+**NOT AUTHENTICATED.** No login was attempted on the user's behalf; no processing resources were consumed. Run this from the repository root in a normal local terminal:
 
-1. Establish authorized product access and actual raster/annotation readability. Verify checksums, completeness and the product processing history; record source IDs and retrieval times.
-2. Choose genuine pre-event/event dates from independent event evidence. Use comparable relative orbit, direction, mode, polarization and AOI coverage. This result set mixes ascending orbit 91 and descending orbit 40 and must not be treated as one interchangeable pair series. March 1 is merely the search start, not proof of a dry baseline.
-3. Implement one documented preprocessing route: apply appropriate orbit metadata, calibration to a stated sigma0/gamma0 convention, applicable thermal/border-noise handling, and reviewed speckle treatment. Account for provider preprocessing already performed rather than applying corrections twice.
-4. Perform DEM-based terrain/geometric correction and appropriate radiometric treatment; co-register/resample to a common grid with explicit CRS/resolution. Preserve nodata, border, shadow/layover and valid-coverage masks and record DEM/software/parameter provenance. Verify amplitude-versus-power and dB conventions explicitly.
-5. Prepare a representative baseline and aligned permanent-water reference; compute experimental classification/change masks only on valid comparable pixels. Review incidence-angle, smooth-soil, urban and vegetation limitations, threshold/Otsu sensitivity, and cleanup effects. Calculate metric/geodesic areas with an appropriate valid-area denominator.
-6. Compare derived masks against independent dated reference evidence; quantify omission/commission errors and uncertainty. Only then consider scientific acceptance. Event reconstruction also requires real per-observation indicators and adequate temporal sampling.
+```powershell
+.\.venv\Scripts\python.exe scripts/process_pair.py --plan "data\cache\openeo\d603c7c0-fa28-44d3-971d-f2c9741bdd1d\plan.json"
+```
 
-Official reference: [CDSE STAC documentation](https://documentation.dataspace.copernicus.eu/APIs/STAC.html) documents discovery; [CDSE Sentinel-1 processing documentation](https://documentation.dataspace.copernicus.eu/APIs/SentinelHub/Data/S1GRD.html) documents processing choices such as calibration, orthorectification and speckle filtering. These service capabilities are not implemented FloodLab capabilities.
+The client prints a CDSE verification URL and short device code. Open that URL in your browser, enter the code there and sign in with your CDSE account. Do not paste passwords or tokens into FloodLab/chat. Keep the terminal open. **Successful authentication causes the command to submit/resume the two reviewed jobs, which may consume CDSE credits.** It does not request/store a refresh token. If the access token expires, rerun the same command to reauthenticate and resume existing job IDs.
 
-## Single next engineering milestone
+In Flood Lab, choose the March 11 → April 4 pair and its saved plan, then click **Refresh processing state**. The prepared plan is an ignored local runtime artifact, so a fresh clone should generate its own plan using `python scripts/check_openeo.py --prepare-demo` or the UI.
 
-**Implement and validate one authenticated analysis-ready Sentinel-1 preprocessing path for a comparable Piura baseline/event pair, producing calibrated, terrain-corrected, co-registered backscatter with masks and complete provenance.** Acceptance should demonstrate actual raster access and processing/QC evidence before applying the existing experimental flood classifier. Backend selection and implementation are the next task, not part of this review.
+## Files changed and next milestone
+
+Added EO modules: `pairs.py`, `openeo_backend.py`, `pair_jobs.py`, `raster.py`; UI module `ui/processing.py`; scripts `check_openeo.py`, `process_pair.py`; backend/QC tests and a UI regression test. Updated configuration, dependencies/version, ignore rules, Flood Lab integration, README, architecture, methodology, decisions and status; preserved the v0.1 report. Generic processing remains outside the flood classifier.
+
+Immediate acceptance step: complete the above OIDC run, inspect actual rasters/QC/source lineage, and only then consider backend PASS. After that, the next engineering milestone is flood detection and validation against independent dated evidence. No component is FROZEN.

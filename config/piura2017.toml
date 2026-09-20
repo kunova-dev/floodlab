@@ -26,3 +26,30 @@ minimum_excess = 0.02
 [logging]
 level = "INFO"
 
+[openeo]
+endpoint = "https://openeo.dataspace.copernicus.eu"
+collection = "SENTINEL1_GRD"
+coefficient = "sigma0-ellipsoid"
+elevation_model = "COPERNICUS_30"
+bands = ["VV"]
+resolution_m = 20
+resampling = "bilinear"
+cache = "data/cache/openeo"
+minimum_coverage = 0.80
+minimum_valid_fraction = 0.80
+poll_seconds = 20
+max_wait_seconds = 7200
+
+# Resource settings used by the successfully processed Piura pair.
+[openeo.job_options]
+python-memory = "8G"
+executor-memory = "2G"
+executor-memoryOverhead = "2G"
+executor-cores = 1
+task-cpus = 1
+max-executors = 2
+
+[pair_demo]
+earlier = "2017-03-11"
+later = "2017-04-04"
+timing_evidence = "Not incorporated; baseline/event interpretation requires independent validation."

@@ -27,3 +27,9 @@ outputs/
 *.nc
 .ipynb_checkpoints/
 
+
+# OIDC/client caches must never enter source control
+.openeo/
+*refresh_token*
+*access_token*
+oidc-token*.json

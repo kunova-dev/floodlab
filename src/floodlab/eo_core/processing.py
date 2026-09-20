@@ -1,4 +1,4 @@
-"""Hazard-neutral product access and processing contracts; backends are not implemented."""
+"""Hazard-neutral product access and processing contracts; see openeo_backend for the first adapter."""
 
 from dataclasses import asdict, dataclass, field
 from datetime import UTC, datetime
@@ -31,7 +31,7 @@ class ProcessingJob:
     configuration: dict
     id: str = field(default_factory=lambda: str(uuid4()))
     created_utc: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
-    version: str = "0.1.0"
+    version: str = "0.2.0"
     status: str = "AWAITING_PREPROCESSING"
     assumptions: list[str] = field(
         default_factory=lambda: [

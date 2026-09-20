@@ -14,6 +14,9 @@ from floodlab.eo_core.aoi import AOI
 from floodlab.eo_core.catalogue import StacCatalogue, query
 from floodlab.eo_core.config import load_config
 from floodlab.eo_core.processing import ProcessingJob, readiness
+from floodlab.ui.event import show_event
+from floodlab.ui.impact import show_saved_impact
+from floodlab.ui.processing import show_pair_processing
 
 ROOT = Path(__file__).resolve().parents[3]
 
@@ -35,14 +38,17 @@ def main() -> None:
         st.error(f"Configuration could not be loaded: {exc}")
         return
     st.sidebar.title("FLOODLAB")
-    st.sidebar.caption("EARTH OBSERVATION · v0.1")
+    st.sidebar.caption("EARTH OBSERVATION | v0.5a")
     page = st.sidebar.radio(
-        "Workspace", ["FLOOD WATCH", "FLOOD HISTORY", "FLOOD LAB", "IMPACT"], index=1
+        "Workspace", ["FLOOD EVENT", "FLOOD HISTORY", "FLOOD LAB", "FLOOD WATCH", "IMPACT"], index=0
     )
     st.sidebar.divider()
     st.sidebar.caption(
-        "Scientific status: experimental. No Piura flood footprint has been generated."
+        "Experimental satellite-derived inundation. Requires independent validation."
     )
+    if page == "FLOOD EVENT":
+        show_event(cfg)
+        return
     if page == "FLOOD WATCH":
         st.title("Flood Watch")
         st.write("A foundation for repeatable observation monitoring.")
@@ -50,11 +56,7 @@ def main() -> None:
         st.markdown("Saved AOI → catalogue adapter → processing job → flood indicators → review")
         return
     if page == "IMPACT":
-        st.title("Impact")
-        st.write("Future intersection of reviewed flood polygons with user exposure.")
-        st.info(
-            "The impact interface is defined. Exposure upload, intersection and loss estimation are not enabled."
-        )
+        show_saved_impact(cfg.root)
         return
     if page == "FLOOD LAB":
         show_lab(cfg)
@@ -215,6 +217,9 @@ def show_lab(cfg) -> None:
     if not context:
         st.info("Search an AOI in FLOOD HISTORY first.")
         return
+    show_pair_processing(cfg, context)
+    st.divider()
+    st.subheader("Catalogue preparation manifest")
     selected = [
         x for x in context["acquisitions"] if x.id in st.session_state.get("selected_ids", [])
     ]

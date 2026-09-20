@@ -1,6 +1,6 @@
 # Methodology
 
-STAGE: Experimental algorithms | VERSION: 0.1.0 | STATUS: DRAFT
+STAGE: Experimental algorithms | VERSION: 0.2.0 | STATUS: DRAFT
 PURPOSE: Honest, testable analysis-ready flood indicators and event grouping.
 INPUTS: Comparable dB power grids, positive metric pixel areas, optional boolean permanent-water grid; historical fractions and an independent baseline.
 OUTPUTS: Probable new inundation mask, area, QC and candidate observed-event intervals.
@@ -37,3 +37,16 @@ First/last anomalous observations and the sampled peak bound available evidence.
 4. Examine masks and sensitivity to thresholds, baseline and cleanup choices.
 5. Compare against independent dated reference extents, report sampling/accuracy uncertainty and inspect false positives/negatives.
 6. Only after explicit review may a scientific output become FROZEN.
+
+
+## v0.2 openEO backscatter convention
+
+Request CDSE SENTINEL1_GRD with exactly one explicit sar_backscatter process: sigma0-ellipsoid, COPERNICUS_30 elevation model and noise_removal=true. This parameterizes on-demand collection processing, not a second calibration of already processed data. Backend capability records describe Orfeo Toolbox and bilinear DEM/backscatter interpolation. We request Copernicus DEM orthorectification; gamma0 radiometric terrain flattening is not claimed. Execution and source identity remain unverified until actual authenticated job results are reviewed.
+
+The graph explicitly resamples to a centroid-selected UTM CRS at configured 20 m resolution using bilinear interpolation and clips to the AOI polygon. Pixel spacing is not equivalent to sensor resolving power. If the returned grids differ, retain native files and explicitly warp the later raster to the earlier grid with bilinear interpolation. The alignment record and native/aligned QC remain in provenance. No difference image or flood classifier is automatically invoked.
+
+Per-band valid pixels require the raster mask, finite values and positive linear power. The backend documents zero as both thermal-noise-removed data and nodata; excluding zero is conservative and can reduce coverage. Nodata fraction counts the raster mask; nonfinite and nonpositive counts are reported separately and may overlap it. Robust percentiles use a deterministic regular sample of at most about 200,000 pixels per band; min/max and validity counts inspect every block. Shared preview scaling uses 2nd/98th percentiles of display samples converted via 10 log10; downsampling is display-only. Extent overlap is a bounding-box metric; common valid fraction on a compatible grid provides the pixel-based counterpart. QC fractions use the output raster grid denominator, which can include area outside a nonrectangular AOI; review masks for such AOIs.
+
+Matching catalogue footprints do not establish actual valid-pixel coverage. Matching metadata does not establish radiometric equivalence, true pre-flood conditions, or true event inundation. Relative orbit 91 ascending and 40 descending are separate series. The March 11–April 4 ascending demo hypothesis preserves platform, orbit, IW and VV with 100% catalogue-footprint coverage; date interpretation requires independent evidence.
+
+References: [CDSE radar ARD](https://documentation.dataspace.copernicus.eu/notebook-samples/openeo/Radar_ARD.html) and [processing implementation notes](https://documentation.dataspace.copernicus.eu/APIs/openEO/openeo_processing.html). These document backend conventions, not evidence that this local implementation has completed a real processing job.
