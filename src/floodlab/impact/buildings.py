@@ -1,6 +1,7 @@
 """Provider-neutral mapped-building enrichment; no hazard processing imports."""
 
 import json
+import pickle
 import subprocess
 import sys
 from dataclasses import dataclass
@@ -67,7 +68,7 @@ class OvertureBuildingProvider:
                     }
                 )
                 receipt.write_text(json.dumps(meta, sort_keys=True), encoding="utf-8")
-                buildings = self._read_parquet(folder / "buildings.parquet")
+                buildings = self._normalized(folder, meta)
                 return buildings, {
                     **meta,
                     "feature_count": len(buildings),
@@ -75,7 +76,7 @@ class OvertureBuildingProvider:
                 }
             if meta.get("status") != "no_data" or meta.get("fallback_checked"):
                 cached = (
-                    self._read_parquet(folder / "buildings.parquet")
+                    self._normalized(folder, meta)
                     if meta.get("retrieval_path") == "duckdb-cloud-geoparquet"
                     else self._read(output)
                     if output.exists()
@@ -193,6 +194,40 @@ class OvertureBuildingProvider:
                 )
             )
         return result
+
+    def _normalized(self, folder, metadata):
+        """Persist our deterministic normalized representation once per raw source/schema."""
+        raw = folder / "buildings.parquet"
+        cache, receipt = (
+            folder / "normalized-buildings-v1.pkl",
+            folder / "normalized-buildings-v1.json",
+        )
+        source_hash = sha256(raw.read_bytes()).hexdigest()
+        expected = {"schema": 1, "release": self.release, "source_sha256": source_hash}
+        if receipt.exists() and cache.exists():
+            saved = json.loads(receipt.read_text(encoding="utf-8"))
+            if all(saved.get(key) == value for key, value in expected.items()) and sha256(
+                cache.read_bytes()
+            ).hexdigest() == saved.get("cache_sha256"):
+                with cache.open("rb") as stream:
+                    return pickle.load(stream)
+        buildings = self._read_parquet(raw)
+        temporary = cache.with_suffix(".tmp")
+        with temporary.open("wb") as stream:
+            pickle.dump(buildings, stream, protocol=pickle.HIGHEST_PROTOCOL)
+        temporary.replace(cache)
+        receipt.write_text(
+            json.dumps(
+                {
+                    **expected,
+                    "cache_sha256": sha256(cache.read_bytes()).hexdigest(),
+                    "feature_count": len(buildings),
+                },
+                sort_keys=True,
+            ),
+            encoding="utf-8",
+        )
+        return buildings
 
     def _metadata(self, aoi, cache_id, retrieved_at, status, detail, feature_count):
         return {

@@ -1,3 +1,19 @@
+# FloodLab v0.5d generic temporal impact validation — 2026-09-23
+
+**STATUS: PASS.** The unchanged generic Impact Engine consumed the frozen pair, maximum-observed single-date, and event-observed temporal-union hazard products without flood-specific core logic. Native hazard measurement remains authoritative; H3 is a reconciling representation. The packages reuse Overture release `2026-08-19.0` as modern/contextual mapped-building exposure only.
+
+| Product | Native ha | H3 ha | Unique mapped buildings intersecting | Building-footprint intersection m² |
+| --- | ---: | ---: | ---: | ---: |
+| Legacy pair | 1,921.24 | 1,922.73 | 157 | 6,502.58 |
+| Maximum observed single-date | 6,328.76 | 6,333.40 | 129 | 4,426.98 |
+| Event-observed temporal union | 10,666.64 | 10,674.52 | 286 | 10,929.63 |
+
+The temporal union means mapped buildings located in terrestrial areas observed inundated at least once during the event; it is not a simultaneous impact count. Each package records upstream footprint checksum, product type/period, H3 provenance, Overture provider/release/cache metadata, and exact geometric building intersections. All three impact ZIP CRCs and local checksum manifests validate.
+
+The cached 282,185-building subset is normalized once with a source-checksum, release and normalization-schema-bound receipt. Current scalability remains limited: generic enrichment iterates through all normalized AOI buildings separately for every hazard footprint. Future work should add spatial-index candidate filtering plus reusable hazard-independent H3/exposure allocation, with equivalence tests before use. No such optimization is included here.
+
+Validation: the previously failing UI test passed in a clean Python process, confirming a transient pandas partial-import state; no application workaround was added. Impact tests passed 9/9. The synthetic non-flood regression remains part of the Impact test suite and confirms no EO/flood imports are required. Full-suite rerun recorded 98 passes and one transient UI failure from the same pandas import state. No component is FROZEN.
+
 # FloodLab v0.5c temporal reconstruction QC — 2026-09-23
 
 **STATUS: PASS (engineering and reproducibility); flood science remains DRAFT.** A cached-data stable-terrestrial diagnostic supports retaining the March 26 Sentinel-1A observation without correction. It used 8,017,321 terrestrial, non-permanent-water, valid pixels outside all fixed-method candidate-change masks and slopes above 5 degrees. Relative to the S1B descending baseline median, stable-reference median shifts were +3.64 dB on Mar 20 (S1B), +4.38 dB on Mar 26 (S1A), and +2.20 dB on Apr 13 (S1B). Mar 26 minus Mar 20 was +0.61 dB median (+0.57 dB mean; 2.82 dB robust spread); quadrant medians ranged -0.17 to +1.60 dB. This is not a material scene-wide S1A/S1B anomaly, and the independently elevated S1B Mar 20 result supports the conclusion that Mar 26 is not solely a platform-transition artefact. No empirical offset was derived or applied.
