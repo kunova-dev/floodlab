@@ -1,8 +1,8 @@
-# FloodLab v0.4 — land-only Piura flood reconstruction
+# FloodLab v0.5a — Piura flood reconstruction and impact grid
 
 Open the default **FLOOD EVENT** page and click **ANALYSE FLOOD EVENT**. Switch **Before / During / Flood footprint**. The Piura reference case reuses real processed Sentinel-1 data; no new login or jobs are required. Outputs are experimental, not validated flood extent.
 
-See the [v0.4 scientific assessment](docs/V04_SCIENTIFIC_ASSESSMENT.md), [validation checkpoint](docs/STATUS.md) and preserved [v0.3 assessment](docs/PIURA_2017_EVENT.md). The current estimate is **1,921.24 ha**, with **229 ha of offshore v0.3 candidates removed**. Historical water, limited Sentinel-2 evidence, rivers, terrain and gauge discovery are auditable. Use **Download complete analysis** for the GIS/provenance ZIP. Technical details are under **Advanced / Scientific Details**. Previous catalogue and processing tools remain available in Flood History / Flood Lab.
+See the [v0.5a validation checkpoint](docs/STATUS.md) and [v0.4 scientific assessment](docs/V04_SCIENTIFIC_ASSESSMENT.md), [validation checkpoint](docs/STATUS.md) and preserved [v0.3 assessment](docs/PIURA_2017_EVENT.md). The current estimate is **1,921.24 ha**, with **229 ha of offshore v0.3 candidates removed**. Historical water, limited Sentinel-2 evidence, rivers, terrain and gauge discovery are auditable. Use **Download complete analysis** for the GIS/provenance ZIP. Technical details are under **Advanced / Scientific Details**. Previous catalogue and processing tools remain available in Flood History / Flood Lab.
 
 # FloodLab v0.2
 
@@ -53,7 +53,7 @@ Authentication expiry or local timeout does not silently create replacement jobs
 
 ## Architecture and configuration
 
-`eo_core` provides AOIs, STAC, pair selection, openEO, job state and raster QC. `hazards/flood` retains experimental analysis-ready-array algorithms. `history` retains generic candidate grouping. Watch and Impact are shells; exposure intersection and losses are not implemented. Landslide and InSAR are not implemented.
+`eo_core` provides AOIs, STAC, pair selection, openEO, job state and raster QC. `hazards/flood` retains experimental analysis-ready-array algorithms. `history` retains generic candidate grouping. Impact adds optional generic H3 area aggregation over completed footprints; sourced exposure intersection and losses are not implemented. Landslide and InSAR are not implemented.
 
 Edit `config/piura2017.toml` for STAC/openEO endpoints, dates, bands, coefficient/DEM, resolution, coverage thresholds, polling and demo date preferences. The openEO cache must stay under ignored `data/cache` or `outputs`. AOIs crossing the dateline must be split; automatic UTM processing currently supports centroid latitudes -80° to 84°, and projection suitability still requires review.
 

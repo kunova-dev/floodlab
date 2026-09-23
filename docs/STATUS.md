@@ -1,5 +1,27 @@
 # FloodLab v0.4 checkpoint — 2026-09-20
 
+# FloodLab v0.5a Impact Engine checkpoint — 2026-09-22
+
+Engineering checkpoint: **PASS**. Piura flood science remains **DRAFT**. Nothing is FROZEN.
+
+v0.5a adds a generic H3 area aggregation after a completed hazard footprint exists. It does not change or replace v0.4's native raster/vector footprint, does not rerun EO processing, and does not estimate exposed people/assets, probability, severity, or loss. Existing v0.4 result: 1,921.24 ha native land-only probable inundation; not validated by independent ground truth. H3 equal-area geometry measures 1,922.73 ha (difference +1.49 ha, 0.078%); native raster hectares remain the source result. At resolution 7 the real saved Piura AOI contains 663 intersecting cells, 293 with positive footprint, including 28 ocean-only cells whose land denominator and percent affected are null.
+
+| Component | Status | Real/Mocked | Tests | Limitations |
+| --- | --- | --- | --- | --- |
+| Generic hazard-to-impact H3 engine | PASS | Real Shapely geometries; synthetic independent hazard test | Geometry/index, clipping, conservation, deduplication, areas, bounds, export, provenance | H3 bbox-overlap API is experimental; regional non-dateline polygons only; polygons inherited from source |
+| AOI / land / hazard area semantics | PASS | Real Piura footprint and land mask; synthetic ocean/no-land cases | No double count, no area beyond AOI/land, null ocean denominator, percentages bounded | Land-mask accuracy inherited; hectare geometry may differ slightly from native raster measurement |
+| Non-flood generic extension | PASS | Synthetic wildfire geometry, no mocked satellite inputs | Subprocess blocks imports from EO, flood and Sentinel/openEO processing modules | Generic aggregation only; no hazard-specific interpretation or validation |
+| Optional Impact UI and map | PASS | Real saved Piura analysis; browser interaction | H3 map, cell popup, resolution selector, source footprint overlay, download | Expert details minimal; not an exposure or loss dashboard |
+| Derived complete-analysis ZIP | PASS | Real completed v0.4 package `855dc008-898e-42ea-9dba-7aa46ee4b587` | Source hashes, all ZIP entries, CRC, H3 IDs/count, percentage bounds | Derived package preserves the source scientific status and inherits all source uncertainty |
+| Exposure enrichment interface | DRAFT | Schema/protocol only | No synthetic exposures or fabricated values; type/interface imports | No buildings, population, roads, land-cover exposure products, risk or loss calculations |
+| Scientific flood extent | DRAFT | Real experimental v0.4 result | Inherited v0.4 checks; H3 reconciles within 0.078% | No independent validation; uncertain event timing/source lineage and sparse optical coverage persist |
+
+Verification: **93 pytest tests passed** (61.14 s; 128 existing Rasterio/Affine pending-deprecation warnings). Ruff check and format check passed; bootstrap passed. The v0.5a derived bundle validator passed: 663 cells, source archive and source flood/land/provenance checksums verified; ZIP SHA-256 `dfb353a7643bb3e9a7855042da10b6c72feedc6b5e5b75216d82517db9b094dd`. The synthetic non-flood test confirms the generic engine imports no EO/flood/Sentinel/openEO implementation. No remote jobs were submitted. Runtime outputs and caches remain Git-ignored; no commit or push.
+
+Output: `outputs/impacts/6ab25fac-d4ea-44ad-92a4-afbd52a9a9cc/analysis.zip`. v0.4 source package SHA-256 remains `7aee27e85fe440b8790135ef4056d79a2524ed0c00f9e1a2e2eb979790de71de`; the original package was not modified. Best next milestone: choose one sourced exposure dataset (for example building footprints), define its date/coverage/licensing and spatial counting rules, then validate exposure aggregation independently before presenting any impact totals.
+
+---
+
 Engineering checkpoint: **PASS**. Scientific reconstruction: **DRAFT**. Nothing is FROZEN.
 
 The real Piura run produced **1,921.24 ha** of experimental land-only new inundation, excluding **229.00 ha** of offshore v0.3 candidates. Zero ocean pixels contribute to terrestrial hectares. Historical water, uncertain baseline, sparse optical agreement and descriptive reference differences remain separate. This is not validated flood extent.

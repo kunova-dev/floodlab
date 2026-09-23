@@ -155,8 +155,11 @@ def analyse_impact(
             "event_date": event_date,
             "cell_area_m2": cell.area,
             "aoi_cell_area_m2": clipped.area,
+            "aoi_cell_area_ha": clipped.area / 10000.0,
             "terrestrial_area_m2": land_area,
+            "terrestrial_area_ha": None if land_area is None else land_area / 10000.0,
             "hazard_area_m2": hazard_area,
+            "hazard_area_ha": hazard_area / 10000.0,
             "terrestrial_affected_pct": None if percent is None else min(100.0, max(0.0, percent)),
             "evidence_status": metadata.get("evidence_status"),
         }

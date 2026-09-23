@@ -1,6 +1,6 @@
 # Architecture
 
-STAGE: Foundation | VERSION: 0.4.0 | STATUS: DRAFT
+STAGE: Foundation | VERSION: 0.5.0a1 | STATUS: DRAFT
 PURPOSE: Separate reusable Earth observation infrastructure from hazards and application workflows.
 INPUTS: WGS84 polygon AOIs, UTC dates, STAC metadata, analysis-ready arrays, indicator series.
 OUTPUTS: Acquisition metadata, preparation manifests, experimental masks/QC, candidate events.
@@ -55,3 +55,9 @@ Source STAC candidates are recorded separately from actual backend lineage: one-
 EO CORE → PERIL ENGINES → RISK APPLICATIONS remains the boundary. Generic verified context alignment, public STAC pagination and gauge observation contracts live in `eo_core`. Historical-water interpretation, optical classification and evidence states live in `hazards/flood`. The consumer UI uses `reconstruction.reconstruct`, while the v0.3 workflow and outputs remain as a regression reference. No risk/loss implementation is introduced.
 
 Operator preparation scripts download public context/optical extracts with source metadata. Consumer analysis is local and never triggers paid remote jobs or authentication. It reuses verified SAR processing, applies land and historical-water domains, retains independent sensor states and creates a new UUID package. Missing optical/gauge evidence is explicit and nonfatal; missing/unverified mandatory land/history prevents a misleading result. Context is currently bounded to the prepared Piura area. A future service can replace preparation adapters without moving scientific interpretation into the UI.
+
+## v0.5a impact aggregation
+
+`impact.engine` is a hazard-independent library. It accepts WGS84 hazard, AOI, and optional land polygons plus hazard/event metadata; it dissolves overlapping source geometry, builds sorted unique H3 candidates, clips each cell to the AOI and supplied land, and calculates exact planar intersections in a local equal-area CRS. The output retains both square metres and hectares. The land denominator is null if no land was supplied or a cell has no terrestrial area. Area conservation checks ensure partition totals match the source geometry within a declared tolerance.
+
+`impact.package` adapts a completed FloodLab package, verifies source hashes, vectorizes the land raster, and writes a new derived ZIP with the original contents and source manifest preserved alongside H3 GeoJSON/provenance. `ui/impact.py` exposes the optional grid/map and derived download after a completed analysis. H3 supports visual aggregation; the source hazard raster/vector remains the scientific footprint. No exposure datasets, loss calculations or new hazard-validation claims are provided. Regional input geometry is limited to non-dateline polygons; cell candidate generation uses a pinned experimental H3 API.
