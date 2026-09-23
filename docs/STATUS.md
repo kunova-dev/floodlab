@@ -1,3 +1,21 @@
+# FloodLab v0.5c temporal reconstruction QC — 2026-09-23
+
+**STATUS: PASS (engineering and reproducibility); flood science remains DRAFT.** A cached-data stable-terrestrial diagnostic supports retaining the March 26 Sentinel-1A observation without correction. It used 8,017,321 terrestrial, non-permanent-water, valid pixels outside all fixed-method candidate-change masks and slopes above 5 degrees. Relative to the S1B descending baseline median, stable-reference median shifts were +3.64 dB on Mar 20 (S1B), +4.38 dB on Mar 26 (S1A), and +2.20 dB on Apr 13 (S1B). Mar 26 minus Mar 20 was +0.61 dB median (+0.57 dB mean; 2.82 dB robust spread); quadrant medians ranged -0.17 to +1.60 dB. This is not a material scene-wide S1A/S1B anomaly, and the independently elevated S1B Mar 20 result supports the conclusion that Mar 26 is not solely a platform-transition artefact. No empirical offset was derived or applied.
+
+The frozen March 11 -> April 4 pair regression remains unchanged at **1,921.24 ha**. It remains a legacy pair-based observation product. The cached real-data reconstruction used the existing v0.4 20 m grid, land/ocean exclusion, historical/permanent-water exclusion, -18 dB water screen, -3 dB change screen and 9-pixel mapping unit. Its temporal package is `outputs/analyses/3bb5d30e-d3bf-46db-a55c-6c746847d558`.
+
+| Date | Sequence / platform | Baseline | Provisional observed-inundation area (ha) | Status |
+| --- | --- | --- | ---: | --- |
+| 2017-03-20 | descending rel. 40 / S1B | Jan 19, Feb 12, Feb 24 (S1B) | 5,374.12 | DRAFT; separate sequence |
+| 2017-03-23 | ascending rel. 91 / S1B | Feb 3, Feb 27, Mar 11 (S1B) | 2,636.84 | DRAFT; same-platform sequence |
+| 2017-03-26 | descending rel. 40 / S1A | Jan 19, Feb 12, Feb 24 (S1B) | 6,328.76 | DRAFT; retained after stable-reference QC |
+| 2017-04-04 | ascending rel. 91 / S1B | Feb 3, Feb 27, Mar 11 (S1B) | 2,553.96 | DRAFT; same-platform sequence |
+| 2017-04-13 | descending rel. 40 / S1B | Jan 19, Feb 12, Feb 24 (S1B) | 2,476.64 | DRAFT; separate sequence |
+
+The independent ascending and descending baseline medians differ by 1.72 dB on terrestrial, non-permanent-water pixels. This is expected to include viewing-geometry effects and confirms that the sequences remain separate; it was not used as a correction. The temporal union is 10,666.64 ha; its descriptive INDECI overlap is 7,822.36 ha, with 31,087.76 ha reference-only and 2,844.28 ha satellite-only. Sentinel-2 remains limited clear-pixel evidence only: the preserved March 31 product has 2.06% usable terrestrial paired coverage with the January 10 baseline and is not independent validation. Generic Impact Engine contract checks passed in memory for selected single-date, maximum, and temporal-union GeoJSON footprints; no buildings/exposure analysis was run.
+
+Validation before the stop: 99 pytest tests passed and Ruff passed. The pending temporal algorithms have synthetic tests for sequence separation, baseline requirements, partial coverage as NOT OBSERVED, union/count/fraction behavior and deterministic maximum selection. No satellite job was submitted or repeated during this QC step. No component is FROZEN.
+
 # FloodLab v0.4 checkpoint — 2026-09-20
 
 # FloodLab v0.5b Built Environment Intelligence checkpoint — 2026-09-23

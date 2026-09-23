@@ -14,7 +14,11 @@ def show_saved_impact(root):
     st.title("Impact")
     st.write("Use a completed footprint without rerunning satellite processing.")
     reports = sorted(
-        (root / "outputs/analyses").glob("*/provenance.json"),
+        (
+            path
+            for path in (root / "outputs/analyses").glob("*/provenance.json")
+            if "probable_flooded_area_ha" in json.loads(path.read_text(encoding="utf-8"))
+        ),
         key=lambda p: p.stat().st_mtime,
         reverse=True,
     )
