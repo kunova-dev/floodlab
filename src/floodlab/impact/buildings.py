@@ -59,11 +59,18 @@ class OvertureBuildingProvider:
         if receipt.exists():
             meta = json.loads(receipt.read_text(encoding="utf-8"))
             if meta.get("status") == "no_data" and (folder / "buildings.parquet").exists():
+                failed_attempt = {
+                    "method": "overturemaps-cli-stac",
+                    "status": "no_data",
+                    "diagnostic": meta.get("diagnostic", "No data found"),
+                }
                 meta.update(
                     {
                         "status": "retrieved",
                         "retrieval_path": "duckdb-cloud-geoparquet",
-                        "diagnostic": "Initial Overture CLI/STAC path returned no data; cached DuckDB cloud GeoParquet fallback succeeded.",
+                        "final_retrieval": "DuckDB cloud GeoParquet fallback succeeded",
+                        "attempts": [failed_attempt, {"method": "duckdb-cloud-geoparquet", "status": "retrieved"}],
+                        "diagnostic": None,
                         "query_method": "DuckDB read_parquet cloud GeoParquet with bbox overlap predicate",
                     }
                 )
@@ -121,6 +128,12 @@ class OvertureBuildingProvider:
                         raw_count,
                     )
                     meta["retrieval_path"] = "duckdb-cloud-geoparquet"
+                    meta["final_retrieval"] = "DuckDB cloud GeoParquet fallback succeeded"
+                    meta["attempts"] = [
+                        {"method": "overturemaps-cli-stac", "status": "no_data", "diagnostic": message},
+                        {"method": "duckdb-cloud-geoparquet", "status": "retrieved", "feature_count": raw_count},
+                    ]
+                    meta["diagnostic"] = None
                     receipt.write_text(json.dumps(meta, sort_keys=True), encoding="utf-8")
                     return buildings, meta
                 meta = self._metadata(

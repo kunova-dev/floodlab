@@ -245,6 +245,23 @@ def test_overture_no_data_cache_is_distinct_from_zero_buildings(tmp_path, monkey
     assert len(calls) == 1
 
 
+def test_overture_failed_primary_is_retained_when_duckdb_fallback_succeeds(tmp_path, monkeypatch):
+    provider = OvertureBuildingProvider(tmp_path, executable="fixture-overture")
+
+    class Completed:
+        returncode = 1
+        stdout = "No data found"
+        stderr = ""
+
+    building = Building("fallback", box(-80.64, -5.21, -80.63, -5.20), "fixture", "1")
+    monkeypatch.setattr("floodlab.impact.buildings.subprocess.run", lambda *a, **k: Completed())
+    monkeypatch.setattr(provider, "_duckdb_retrieve", lambda *a: ([building], 1))
+    buildings, metadata = provider.retrieve(box(-80.65, -5.22, -80.61, -5.18))
+    assert len(buildings) == metadata["feature_count"] == 1
+    assert metadata["status"] == "retrieved" and metadata["diagnostic"] is None
+    assert [attempt["status"] for attempt in metadata["attempts"]] == ["no_data", "retrieved"]
+
+
 def test_non_flood_building_provider_path_has_no_processing_imports():
     code = """
 import builtins,sys

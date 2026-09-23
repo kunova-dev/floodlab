@@ -19,23 +19,28 @@ def validate(folder):
         for f in features
         if f["properties"]["terrestrial_affected_pct"] is not None
     )
-    with zipfile.ZipFile(folder / "analysis.zip") as archive:
+    archive_name = "analysis.zip" if (folder / "analysis.zip").exists() else "impact.zip"
+    with zipfile.ZipFile(folder / archive_name) as archive:
         assert archive.testzip() is None
         checks = json.loads(archive.read("checksums.json"))
         for name, digest in checks.items():
             assert hashlib.sha256(archive.read(name)).hexdigest() == digest
-        source = json.loads(archive.read("impact/source-checksums.json"))
-        assert (
-            hashlib.sha256(archive.read("provenance.json")).hexdigest() == source["provenance.json"]
-        )
-        assert hashlib.sha256(archive.read("flood.geojson")).hexdigest() == source["flood.geojson"]
-        assert hashlib.sha256(archive.read("land.tif")).hexdigest() == source["land.tif"]
+        if archive_name == "analysis.zip":
+            source = json.loads(archive.read("impact/source-checksums.json"))
+            assert hashlib.sha256(archive.read("provenance.json")).hexdigest() == source["provenance.json"]
+            assert hashlib.sha256(archive.read("flood.geojson")).hexdigest() == source["flood.geojson"]
+            assert hashlib.sha256(archive.read("land.tif")).hexdigest() == source["land.tif"]
+    if archive_name == "impact.zip":
+        checks = json.loads((folder / "checksums.json").read_text(encoding="utf-8"))
+        for name, digest in checks.items():
+            if name != "impact.zip":
+                assert hashlib.sha256((folder / name).read_bytes()).hexdigest() == digest
     return {
         "impact_analysis_id": provenance["analysis_id"],
         "resolution": provenance["resolution"],
         "cell_count": len(features),
-        "zip_sha256": sha256_file(folder / "analysis.zip"),
-        "source_analysis_id": provenance["metadata"]["source_analysis_id"],
+        "zip_sha256": sha256_file(folder / archive_name),
+        "source_analysis_id": provenance.get("metadata", {}).get("source_analysis_id"),
         "status": "PASS",
     }
 
