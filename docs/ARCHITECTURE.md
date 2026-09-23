@@ -67,3 +67,37 @@ Operator preparation scripts download public context/optical extracts with sourc
 The Impact Engine accepts generic footprint geometry, AOI, optional terrestrial geometry, hazard type/date and opaque provenance metadata. FloodLab supplied three distinct Piura products through that same contract: a legacy pair, a maximum observed single-date footprint, and an event-observed temporal union. The core has no flood-specific branching; a future landslide polygon can use the same interface. Product semantics stay in upstream metadata and user presentation.
 
 Mapped-building enrichment currently performs exact geometry operations for every normalized AOI building for each requested footprint. This preserves exact intersections and deterministic H3 allocation but does not scale efficiently across many footprints. A future, hazard-independent optimization may cache building-to-H3 allocation and use a spatial index for exact-intersection candidates; it must prove numerical equivalence before replacing the current path.
+
+## v0.5e environmental context
+
+`environment` is a separate context package. `EnvironmentalAsset` identifies a
+traceable source/subset; `EnvironmentalVariable` identifies an observed or
+derived quantity and retains its upstream assets, checksums, algorithm,
+parameters and spatial/temporal processing. Coverage is explicit: an
+unavailable provider is not zero coverage or a dry/no-class result.
+
+The first Piura package uses read-only adapters over the checked v0.4
+Copernicus DEM and HydroRIVERS assets to supply elevation, DSM-derived slope
+and mapped-drainage distance. These are contextual variables only: no HAND,
+flow connectivity, hazard rule, exposure or impact is inferred. Native raster
+values are authoritative. H3 products are separately generated sidecars,
+joinable by `h3_index`, with their aggregation method and coverage/nodata
+state recorded.
+
+Environmental caches use a canonical identity including source checksum and
+version, AOI, grid, algorithm/configuration, reference period and schema.
+Receipts are atomically replaced. Footprint summaries reuse native processed
+context rather than reprocessing static source assets. The C3S/ESA CCI 2017
+land-cover choice and its annual-event-year limitation are documented in
+`ENVIRONMENT_DATA.md`; it remains unavailable until a verified subset receipt
+is present and is never silently replaced by modern land cover.
+
+Environmental H3 is explicitly multi-resolution. Resolution 7 is the standard
+city/event sidecar and uses the same `h3_index` resolution as the Piura v0.5d
+Impact Grid; resolution 4 is optional regional context. Each resolution is
+independently aggregated from native pixels, since means and medians cannot be
+reliably promoted from child summaries by simple averaging. The standard path
+rasterizes all selected H3 polygons once to a labelled native grid, then groups
+pixel-centre values by label. It records resolution, algorithm/version, source
+asset and variable checksums, native grid, nodata policy, timestamp, coverage,
+related resolutions and an output digest.

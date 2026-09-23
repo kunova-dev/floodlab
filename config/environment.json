@@ -1,0 +1,7 @@
+{
+  "schema_version": "v0.5e-environment-h3-v1",
+  "standard_event_resolution": 7,
+  "optional_overview_resolutions": [4],
+  "aggregation_algorithm": "native-pixel-centre-labelled-raster",
+  "native_data_authoritative": true
+}

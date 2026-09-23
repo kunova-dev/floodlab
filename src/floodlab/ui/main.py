@@ -14,6 +14,7 @@ from floodlab.eo_core.aoi import AOI
 from floodlab.eo_core.catalogue import StacCatalogue, query
 from floodlab.eo_core.config import load_config
 from floodlab.eo_core.processing import ProcessingJob, readiness
+from floodlab.ui.environment import show_environment_context
 from floodlab.ui.event import show_event
 from floodlab.ui.impact import show_saved_impact
 from floodlab.ui.processing import show_pair_processing
@@ -40,7 +41,7 @@ def main() -> None:
     st.sidebar.title("FLOODLAB")
     st.sidebar.caption("EARTH OBSERVATION | v0.5b")
     page = st.sidebar.radio(
-        "Workspace", ["FLOOD EVENT", "FLOOD HISTORY", "FLOOD LAB", "FLOOD WATCH", "IMPACT"], index=0
+        "Workspace", ["FLOOD EVENT", "FLOOD HISTORY", "FLOOD LAB", "FLOOD WATCH", "IMPACT", "ENVIRONMENT"], index=0
     )
     st.sidebar.divider()
     st.sidebar.caption(
@@ -57,6 +58,9 @@ def main() -> None:
         return
     if page == "IMPACT":
         show_saved_impact(cfg.root)
+        return
+    if page == "ENVIRONMENT":
+        show_environment_context(cfg.root)
         return
     if page == "FLOOD LAB":
         show_lab(cfg)

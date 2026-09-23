@@ -260,6 +260,8 @@ TEST STATUS: 54 local tests passed; public capabilities and both selected-pair g
 | Flood Lab plan/state/preview UI | PASS | Real app; deterministic AppTest | Existing navigation plus new plan creation/auth handoff | Preview tested with synthetic arrays only; real output pending |
 | Flood classification/history | DRAFT | Existing experimental algorithms | Existing tests retained | Not invoked by v0.2 processing; no flood footprint or real indicator series |
 | Watch/Impact | DRAFT | Unchanged shells/interfaces | Existing checks retained | No new monitoring, exposure or loss functionality |
+| Environmental Context v0.5e | PASS | Verified local Copernicus DEM and HydroRIVERS assets; ESA CCI 2017 land cover explicitly unavailable pending a verified subset | Asset/variable lineage, states, cache invalidation, native summaries, H3 sidecar, ZIP/checksum and import-isolation tests | DRAFT context only; DSM slope and mapped-reach distance are not HAND, causation, hazard, exposure or impact |
+| Environmental H3 multi-resolution | PASS | Independently aggregated verified native context; R7 event/city sidecar and R4 overview policy | Polygon-reference equivalence, explicit resolution, deterministic output, resolution cache key and H3 join tests | H3 is derived context only; native grids remain authoritative and pixel-centre treatment can leave a small AOI-edge remainder explicitly unrepresented |
 
 ## Public backend evidence
 
