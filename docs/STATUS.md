@@ -1,5 +1,27 @@
 # FloodLab v0.4 checkpoint — 2026-09-20
 
+# FloodLab v0.5b Built Environment Intelligence checkpoint — 2026-09-23
+
+Engineering implementation: **PASS**. Piura Overture building enrichment: **PASS WITH PIURA DATA** after independent DuckDB diagnosis and provider fallback. Flood science remains **DRAFT**. Nothing is FROZEN.
+
+v0.5b introduces a provider-independent mapped-building interface and Overture Maps Buildings adapter. It does not alter the flood raster, flood method, baseline, thresholds, land mask, satellite processing, or H3 hazard calculation. The native Piura footprint remains 1,921.24 ha; H3 remains 1,922.73 ha. The initial Overture CLI/STAC path incorrectly reported `No data found`; independent DuckDB cloud GeoParquet retrieval proved coverage and the provider now falls back to that documented path. No replacement provider was selected.
+
+| Component | Status | Real/Mocked | Tests | Limitations |
+| --- | --- | --- | --- | --- |
+| Overture Buildings provider | PASS | Real AOI-only DuckDB cloud GeoParquet retrieval, release `2026-08-19.0`; fixture provider tests | Cache reuse, fallback diagnosis, provenance, provider isolation | Current mapped layer is modern; no historical building claim |
+| Normalized building model | PASS | Provider-neutral schema | Stable ID deduplication, nullable height/levels, geometry validity | Source attributes depend on provider completeness |
+| Generic building/H3 enrichment | PASS | Synthetic non-flood and geometry fixtures | Unique count reconciliation, area apportionment, partial intersections, bounded percentages | Geometric intersection is potential exposure context only, never damage |
+| Piura mapped-building result | PASS | Real Overture response: 282,185 raw/normalized buildings | Derived ZIP validation, source checksums, unique count and area reconciliation | 157 intersect hazard; modern contextual layer, not 2017 presence or damage |
+| Derived impact package | PASS | Real Piura source package preserved | Archive CRC/checksum validation | No building GeoJSON exported when provider reports no data |
+
+Source summary: Overture Maps Buildings is queried by its documented cloud GeoParquet/DuckDB workflow for `release/2026-08-19.0/theme=buildings/type=building/`, retrieving only the AOI subset. Overture's current documentation describes IDs, geometry, height, subtype and source fields where supplied; the Buildings theme is available under ODbL and source-level licence metadata is retained where available. The building layer is explicitly labelled **MODERN / CONTEXTUAL BUILT-ENVIRONMENT BASELINE**. It cannot show what existed in Piura during the 2017 event.
+
+Piura validation: AOI WGS84 bbox is `(-80.95, -5.65, -80.45, -5.05)`, with longitude-first ordering and plausible Piura coordinates. Independent DuckDB returned **282,185 raw records** before FloodLab geometry filters. A small urban sanity bbox `(-80.66, -5.22, -80.60, -5.16)` returned **57,624 raw records**. FloodLab normalized **282,185** cached records; **157** unique buildings intersect the observed flood footprint. Total footprint area of AOI buildings is **30,789,831.88 m²**; geometrically intersecting hazard area is **6,502.58 m²**. Height is present for **17 / 282,185 (0.0060%)** and levels for **110 / 282,185 (0.0390%)**. The derived package `outputs/impacts/41e3d1a3-27d6-4700-b654-2f30ea023fb2/analysis.zip` validates with ZIP SHA-256 `9938ae526a85a903640b2168f704b6c3622f476c91b0cc8d06e4fbc064b21732`; its source manifest, H3 counts and area reconciliation pass.
+
+Verification: **96 pytest tests passed** (128 existing Rasterio/Affine pending-deprecation warnings). The mandatory non-flood building path passed without EO core, flood processors, Sentinel or openEO imports. No satellite jobs were submitted; only public Overture queries ran. Caches and outputs remain ignored by Git. No commit or push.
+
+---
+
 # FloodLab v0.5a Impact Engine checkpoint — 2026-09-22
 
 Engineering checkpoint: **PASS**. Piura flood science remains **DRAFT**. Nothing is FROZEN.

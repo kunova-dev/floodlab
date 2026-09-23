@@ -10,7 +10,8 @@ from pyproj import Geod
 from shapely.geometry import box, mapping, shape
 from shapely.ops import unary_union
 
-from floodlab.impact.engine import analyse_impact
+from floodlab.impact.buildings import Building, OvertureBuildingProvider
+from floodlab.impact.engine import analyse_impact, enrich_buildings
 
 
 def test_index_geometry_partition_and_determinism(tmp_path):
@@ -165,8 +166,22 @@ def test_derived_complete_package_preserves_source_and_checksums(tmp_path):
             archive.write(source / name, name)
         archive.writestr("checksums.json", json.dumps(original))
     original["analysis.zip"] = digest(source / "analysis.zip")
+
+    class FixtureProvider:
+        def retrieve(self, geometry):
+            return [Building("fixture-building", aoi, "fixture", "1")], {
+                "provider": "fixture",
+                "release": "1",
+                "status": "retrieved",
+                "temporal_baseline": "MODERN / CONTEXTUAL BUILT-ENVIRONMENT BASELINE",
+            }
+
     result = build_impact_package(
-        source, tmp_path / "derived", hazard_type="wildfire", event_date="2020-01-01"
+        source,
+        tmp_path / "derived",
+        hazard_type="wildfire",
+        event_date="2020-01-01",
+        building_provider=FixtureProvider(),
     )
     assert all(digest(source / name) == value for name, value in original.items())
     with zipfile.ZipFile(result / "analysis.zip") as archive:
@@ -176,8 +191,80 @@ def test_derived_complete_package_preserves_source_and_checksums(tmp_path):
         for name, value in checks.items():
             assert hashlib.sha256(archive.read(name)).hexdigest() == value
         assert archive.read("provenance.json") == (source / "provenance.json").read_bytes()
+    assert json.loads((result / "buildings_aoi.geojson").read_text())["features"]
+    assert json.loads((result / "buildings_intersecting_hazard.geojson").read_text())["features"]
     (source / "flood.geojson").write_text("{}")
     with pytest.raises(ValueError, match="integrity"):
         build_impact_package(
             source, tmp_path / "derived", hazard_type="wildfire", event_date="2020-01-01"
         )
+
+
+def test_building_enrichment_counts_once_and_apportions_geometry():
+    aoi, hazard = box(-80.65, -5.22, -80.61, -5.18), box(-80.64, -5.21, -80.62, -5.19)
+    analysis = analyse_impact(hazard, aoi, "wildfire", "2020-01-01", land=aoi)
+    buildings = [
+        Building("same", box(-80.641, -5.211, -80.625, -5.195), "fixture", "1", height_m=8),
+        Building("same", box(-80.639, -5.209, -80.623, -5.193), "fixture", "1", levels=None),
+        Building("dry", box(-80.619, -5.219, -80.615, -5.215), "fixture", "1"),
+    ]
+    all_buildings, exposed = enrich_buildings(
+        analysis, buildings, aoi, hazard, {"provider": "fixture", "status": "retrieved"}
+    )
+    summary = analysis.provenance["buildings"]
+    assert len(all_buildings) == summary["buildings_in_aoi"] == 2
+    assert len(exposed) == summary["buildings_intersecting_hazard"] == 1
+    assert sum(f["properties"]["building_count"] for f in analysis.grid["features"]) == 2
+    assert sum(
+        f["properties"]["building_footprint_m2"] for f in analysis.grid["features"]
+    ) == pytest.approx(summary["building_footprint_m2"])
+    assert sum(
+        f["properties"]["building_hazard_intersection_m2"] for f in analysis.grid["features"]
+    ) == pytest.approx(summary["building_hazard_intersection_m2"])
+    assert all(0 <= f["properties"]["footprint_intersection_pct"] <= 100 for f in all_buildings)
+    assert all_buildings[0]["properties"]["levels"] is None
+
+
+def test_overture_no_data_cache_is_distinct_from_zero_buildings(tmp_path, monkeypatch):
+    provider = OvertureBuildingProvider(tmp_path, executable="fixture-overture")
+    calls = []
+
+    class Completed:
+        returncode = 1
+        stdout = "No data found for release 2026-08-19.0"
+        stderr = ""
+
+    monkeypatch.setattr(
+        "floodlab.impact.buildings.subprocess.run", lambda *a, **k: calls.append(a) or Completed()
+    )
+    monkeypatch.setattr(provider, "_duckdb_retrieve", lambda *a: ([], 0))
+    first, metadata = provider.retrieve(box(-80.65, -5.22, -80.61, -5.18))
+    second, reused = provider.retrieve(box(-80.65, -5.22, -80.61, -5.18))
+    assert first == second == []
+    assert metadata["status"] == "no_data" and reused["cache_status"] == "reused"
+    assert len(calls) == 1
+
+
+def test_non_flood_building_provider_path_has_no_processing_imports():
+    code = """
+import builtins,sys
+original=builtins.__import__
+def guarded(name,*args,**kwargs):
+    if name.startswith(('floodlab.hazards','floodlab.eo_core','openeo')):
+        raise AssertionError('Forbidden processing import: '+name)
+    return original(name,*args,**kwargs)
+builtins.__import__=guarded
+from shapely.geometry import box
+from floodlab.impact.engine import analyse_impact,enrich_buildings
+from floodlab.impact.buildings import Building
+aoi=box(-80.65,-5.22,-80.61,-5.18)
+analysis=analyse_impact(box(-80.64,-5.21,-80.62,-5.19),aoi,'wildfire','2020-01-01')
+enrich_buildings(analysis,[Building('b',box(-80.64,-5.21,-80.63,-5.20),'fixture','1')],aoi,box(-80.64,-5.21,-80.62,-5.19),{'status':'retrieved','provider':'fixture'})
+assert analysis.provenance['buildings']['buildings_intersecting_hazard']==1
+assert not any(name.startswith(('floodlab.hazards','floodlab.eo_core','openeo')) for name in sys.modules)
+print('NON-FLOOD BUILDING PASS')
+"""
+    result = subprocess.run(
+        [sys.executable, "-c", code], capture_output=True, text=True, check=True
+    )
+    assert "NON-FLOOD BUILDING PASS" in result.stdout

@@ -4,10 +4,10 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "floodlab"
-version = "0.5.0a1"
+version = "0.5.0b1"
 description = "Auditable Earth observation flood investigation foundation"
 requires-python = ">=3.11"
-dependencies = ["h3==4.5.0", "numpy>=1.26,<3", "scipy>=1.12,<2", "shapely>=2,<3", "pystac-client>=0.8,<1", "streamlit>=1.40,<2", "folium>=0.18,<1", "streamlit-folium>=0.23,<1", "openeo>=0.40,<1", "rasterio>=1.4,<2", "pyproj>=3.6,<4", "geopandas>=1,<2", "requests>=2.31,<3", "Pillow>=10,<13"]
+dependencies = ["h3==4.5.0", "overturemaps>=1,<2", "duckdb>=1.5,<2", "numpy>=1.26,<3", "scipy>=1.12,<2", "shapely>=2,<3", "pystac-client>=0.8,<1", "streamlit>=1.40,<2", "folium>=0.18,<1", "streamlit-folium>=0.23,<1", "openeo>=0.40,<1", "rasterio>=1.4,<2", "pyproj>=3.6,<4", "geopandas>=1,<2", "requests>=2.31,<3", "Pillow>=10,<13"]
 
 [project.optional-dependencies]
 dev = ["pytest>=8,<10", "ruff>=0.9,<1"]

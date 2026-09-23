@@ -13,10 +13,12 @@ from shapely.ops import unary_union
 
 from floodlab.eo_core.pair_jobs import sha256_file, write_json
 
-from .engine import analyse_impact
+from .engine import analyse_impact, enrich_buildings
 
 
-def build_impact_package(source, destination, *, hazard_type, event_date, resolution=7):
+def build_impact_package(
+    source, destination, *, hazard_type, event_date, resolution=7, building_provider=None
+):
     """Create a derived complete ZIP; source package and its provenance remain untouched."""
     source = Path(source)
     report_path = source / "provenance.json"
@@ -51,8 +53,26 @@ def build_impact_package(source, destination, *, hazard_type, event_date, resolu
         resolution=resolution,
         analysis_id=str(uuid4()),
     )
+    building_files = []
+    if building_provider is not None:
+        buildings, building_metadata = building_provider.retrieve(report["aoi"])
+        if building_metadata["status"] == "retrieved":
+            aoi_buildings, hazard_buildings = enrich_buildings(
+                result, buildings, report["aoi"], footprint, building_metadata
+            )
+            building_files = [
+                ("buildings_aoi.geojson", {"type": "FeatureCollection", "features": aoi_buildings}),
+                (
+                    "buildings_intersecting_hazard.geojson",
+                    {"type": "FeatureCollection", "features": hazard_buildings},
+                ),
+            ]
+        else:
+            result.provenance["buildings"] = building_metadata
     folder = Path(destination) / result.analysis_id
     result.export(folder)
+    for name, value in building_files:
+        (folder / name).write_text(json.dumps(value, sort_keys=True), encoding="utf-8")
     # Validate every payload in the original archive before constructing a derivative.
     with zipfile.ZipFile(source / "analysis.zip") as original:
         checks = json.loads(original.read("checksums.json"))
@@ -68,21 +88,26 @@ def build_impact_package(source, destination, *, hazard_type, event_date, resolu
         package_checks["impact/source-checksums.json"] = sha256(
             original.read("checksums.json")
         ).hexdigest()
-        for name in ["grid.geojson", "provenance.json"]:
+        for name in ["grid.geojson", "provenance.json", *[item[0] for item in building_files]]:
             package_checks["impact/" + name] = sha256_file(folder / name)
         with zipfile.ZipFile(folder / "analysis.zip", "x", zipfile.ZIP_DEFLATED) as out:
             for name in original.namelist():
                 if name != "checksums.json":
                     out.writestr(name, original.read(name))
             out.writestr("impact/source-checksums.json", original.read("checksums.json"))
-            for name in ["grid.geojson", "provenance.json"]:
+            for name in ["grid.geojson", "provenance.json", *[item[0] for item in building_files]]:
                 out.write(folder / name, "impact/" + name)
             out.writestr("checksums.json", json.dumps(package_checks, sort_keys=True))
     write_json(
         folder / "checksums.json",
         {
             name: sha256_file(folder / name)
-            for name in ["grid.geojson", "provenance.json", "analysis.zip"]
+            for name in [
+                "grid.geojson",
+                "provenance.json",
+                *[item[0] for item in building_files],
+                "analysis.zip",
+            ]
         },
     )
     return folder

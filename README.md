@@ -1,8 +1,8 @@
-# FloodLab v0.5a — Piura flood reconstruction and impact grid
+# FloodLab v0.5b — Piura flood reconstruction and built-environment context
 
 Open the default **FLOOD EVENT** page and click **ANALYSE FLOOD EVENT**. Switch **Before / During / Flood footprint**. The Piura reference case reuses real processed Sentinel-1 data; no new login or jobs are required. Outputs are experimental, not validated flood extent.
 
-See the [v0.5a validation checkpoint](docs/STATUS.md) and [v0.4 scientific assessment](docs/V04_SCIENTIFIC_ASSESSMENT.md), [validation checkpoint](docs/STATUS.md) and preserved [v0.3 assessment](docs/PIURA_2017_EVENT.md). The current estimate is **1,921.24 ha**, with **229 ha of offshore v0.3 candidates removed**. Historical water, limited Sentinel-2 evidence, rivers, terrain and gauge discovery are auditable. Use **Download complete analysis** for the GIS/provenance ZIP. Technical details are under **Advanced / Scientific Details**. Previous catalogue and processing tools remain available in Flood History / Flood Lab.
+See the [v0.5b validation checkpoint](docs/STATUS.md) and [v0.4 scientific assessment](docs/V04_SCIENTIFIC_ASSESSMENT.md). The current native estimate is **1,921.24 ha**, with **229 ha of offshore v0.3 candidates removed**. The optional Impact page can enrich a completed analysis with current Overture mapped-building context where coverage is available. It does not claim that buildings were present in 2017 or damaged. Technical details are under **Advanced / Scientific Details**.
 
 # FloodLab v0.2
 

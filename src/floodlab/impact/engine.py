@@ -13,6 +13,7 @@ import shapely
 from pyproj import CRS, Transformer
 from shapely.geometry import Polygon, mapping, shape
 from shapely.ops import transform, unary_union
+from shapely.strtree import STRtree
 
 ExposureKind = Literal[
     "buildings",
@@ -49,6 +50,145 @@ class ImpactAnalysis:
             (folder / name).write_text(
                 json.dumps(value, sort_keys=True, allow_nan=False), encoding="utf-8"
             )
+
+
+def enrich_buildings(analysis, buildings, aoi, hazard_footprint, provider_metadata):
+    """Add unique-building geometry intersections and H3 allocations to a generic analysis."""
+    aoi = polygon_input(aoi)
+    hazard = polygon_input(hazard_footprint, allow_empty=True)
+    centre = aoi.centroid
+    crs = CRS.from_proj4(
+        f"+proj=laea +lat_0={centre.y} +lon_0={centre.x} +datum=WGS84 +units=m +no_defs"
+    )
+    forward = Transformer.from_crs(4326, crs, always_xy=True).transform
+    inverse = Transformer.from_crs(crs, 4326, always_xy=True).transform
+    project = lambda geometry: transform(forward, shapely.segmentize(geometry, 0.001))
+    domain, affected = project(aoi), project(hazard).intersection(project(aoi))
+    # Stable ID is the unique count key. Same source ID geometry is unioned deterministically.
+    unique = {}
+    for building in buildings:
+        geometry = polygon_input(building.geometry, allow_empty=True)
+        if geometry.is_empty:
+            continue
+        if building.source_id in unique:
+            old = unique[building.source_id]
+            unique[building.source_id] = (old[0], unary_union([old[1], geometry]))
+        else:
+            unique[building.source_id] = (building, geometry)
+    normalized, inside = [], []
+    for source_id in sorted(unique):
+        building, geometry = unique[source_id]
+        geometry = project(geometry).intersection(domain)
+        if geometry.area <= 1e-6:
+            continue
+        intersection = geometry.intersection(affected)
+        record = {
+            "source_id": source_id,
+            "provider": building.provider,
+            "release": building.release,
+            "subtype": building.subtype,
+            "height_m": building.height_m,
+            "levels": building.levels,
+            "confidence": building.confidence,
+            "source_metadata": building.source_metadata,
+            "building_footprint_m2": geometry.area,
+            "hazard_intersection_m2": intersection.area,
+            "footprint_intersection_pct": 100 * intersection.area / geometry.area,
+        }
+        feature = {
+            "type": "Feature",
+            "geometry": mapping(transform(inverse, geometry)),
+            "properties": record,
+        }
+        normalized.append(feature)
+        inside.append((record, geometry, intersection))
+    grid_geometries = [
+        (feature["properties"], project(shape(feature["geometry"])))
+        for feature in analysis.grid["features"]
+    ]
+    grid_tree = STRtree([cell for _, cell in grid_geometries])
+    for properties, _ in grid_geometries:
+        properties.update(
+            {
+                "building_count": 0,
+                "building_footprint_m2": 0.0,
+                "building_hazard_intersection_m2": 0.0,
+                "building_height_count": 0,
+                "mean_building_height_m": None,
+                "median_building_height_m": None,
+                "building_levels_count": 0,
+                "mean_building_levels": None,
+            }
+        )
+    height_values, level_values = (
+        {p["h3_index"]: [] for p, _ in grid_geometries},
+        {p["h3_index"]: [] for p, _ in grid_geometries},
+    )
+    for record, geometry, intersection in inside:
+        representative = geometry.representative_point()
+        allocated = False
+        for candidate in grid_tree.query(geometry):
+            properties, cell = grid_geometries[int(candidate)]
+            properties["building_footprint_m2"] += geometry.intersection(cell).area
+            properties["building_hazard_intersection_m2"] += intersection.intersection(cell).area
+            if not allocated and cell.covers(representative):
+                properties["building_count"] += 1
+                allocated = True
+                if record["height_m"] is not None:
+                    height_values[properties["h3_index"]].append(record["height_m"])
+                if record["levels"] is not None:
+                    level_values[properties["h3_index"]].append(record["levels"])
+        if not allocated:
+            raise ValueError("Building representative point did not map to H3 partition")
+    for properties, _ in grid_geometries:
+        heights, levels = (
+            height_values[properties["h3_index"]],
+            level_values[properties["h3_index"]],
+        )
+        properties["building_height_count"] = len(heights)
+        properties["building_levels_count"] = len(levels)
+        properties["mean_building_height_m"] = sum(heights) / len(heights) if heights else None
+        properties["median_building_height_m"] = (
+            sorted(heights)[len(heights) // 2] if heights else None
+        )
+        properties["mean_building_levels"] = sum(levels) / len(levels) if levels else None
+    intersecting = [item for item in inside if item[2].area > 1e-6]
+    total = sum(item[1].area for item in inside)
+    intersect_area = sum(item[2].area for item in inside)
+    count = len(inside)
+    summary = {
+        "buildings_in_aoi": count,
+        "buildings_intersecting_hazard": len(intersecting),
+        "pct_aoi_buildings_intersecting_hazard": 100 * len(intersecting) / count if count else 0.0,
+        "building_footprint_m2": total,
+        "building_hazard_intersection_m2": intersect_area,
+        "buildings_with_height": sum(item[0]["height_m"] is not None for item in inside),
+        "buildings_with_levels": sum(item[0]["levels"] is not None for item in inside),
+        "count_allocation": "Each unique source ID is assigned once to the clipped-H3 cell containing its representative point; areas are geometrically apportioned.",
+    }
+    summary["pct_with_height"] = 100 * summary["buildings_with_height"] / count if count else 0.0
+    summary["pct_with_levels"] = 100 * summary["buildings_with_levels"] / count if count else 0.0
+    if sum(p["building_count"] for p, _ in grid_geometries) != count:
+        raise ValueError("H3 building count reconciliation failed")
+    tolerance = max(0.01, total * 1e-7)
+    if abs(sum(p["building_footprint_m2"] for p, _ in grid_geometries) - total) > tolerance:
+        raise ValueError("H3 building area reconciliation failed")
+    if (
+        abs(sum(p["building_hazard_intersection_m2"] for p, _ in grid_geometries) - intersect_area)
+        > tolerance
+    ):
+        raise ValueError("H3 building hazard area reconciliation failed")
+    analysis.provenance["buildings"] = {
+        **provider_metadata,
+        **summary,
+        "area_tolerance_m2": tolerance,
+    }
+    analysis.provenance["limitations"].append(
+        "Mapped building intersection is geometric exposure context, not evidence of historical presence, inundation, damage, occupancy, value or loss."
+    )
+    return normalized, [
+        feature for feature in normalized if feature["properties"]["hazard_intersection_m2"] > 1e-6
+    ]
 
 
 def polygon_input(value, allow_empty=False):

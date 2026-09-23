@@ -6,6 +6,7 @@ import folium
 import streamlit as st
 from streamlit_folium import st_folium
 
+from floodlab.impact.buildings import OvertureBuildingProvider
 from floodlab.impact.package import build_impact_package
 
 
@@ -40,20 +41,25 @@ def show_impact(root, source, report):
     key = str(source)
     with st.expander("Impact Grid"):
         st.caption(
-            "Optional area aggregation. No buildings, population, exposure or loss estimates. The native footprint remains the scientific product."
+            "Optional impact aggregation. The native footprint remains the scientific product."
         )
         resolution = st.selectbox(
             "Grid detail (H3 resolution)", [6, 7, 8], index=1, key="impact_resolution"
         )
+        use_buildings = st.checkbox("Add mapped-building context (Overture Maps)", value=True)
         if st.button("Build Impact Grid"):
             try:
                 with st.spinner("Aggregating the completed footprint…"):
+                    provider = (
+                        OvertureBuildingProvider(root / "data/cache") if use_buildings else None
+                    )
                     folder = build_impact_package(
                         source,
                         root / "outputs/impacts",
                         hazard_type="flood",
                         event_date=report["event"]["event_date"],
                         resolution=resolution,
+                        building_provider=provider,
                     )
                 st.session_state["impact_product"] = {
                     "source": key,
@@ -76,11 +82,58 @@ def show_impact(root, source, report):
         st.caption(
             "Percent affected uses only the terrestrial portion inside the AOI. Grey means no terrestrial denominator. Equal-area geometry measurements may differ slightly from native raster hectares."
         )
+        building_info = provenance.get("buildings")
+        if building_info and building_info.get("status") == "retrieved":
+            st.subheader("Built Environment")
+            cols = st.columns(4)
+            cols[0].metric("Mapped buildings within AOI", building_info["buildings_in_aoi"])
+            cols[1].metric(
+                "Buildings intersecting observed inundation",
+                building_info["buildings_intersecting_hazard"],
+            )
+            cols[2].metric(
+                "Building footprint intersecting inundation",
+                f"{building_info['building_hazard_intersection_m2'] / 10000:,.2f} ha",
+            )
+            cols[3].metric("Buildings with height data", f"{building_info['pct_with_height']:.1f}%")
+            st.caption(
+                "Modern mapped buildings provide contextual built-environment information only. They must not be interpreted as buildings present in 2017 or as confirmed damage."
+            )
+        elif building_info:
+            st.info(
+                "Mapped-building enrichment is unavailable for this AOI; this is not a count of zero buildings. The flood and H3 products are unchanged."
+            )
+            with st.expander("Advanced / Scientific Details"):
+                st.json(building_info)
         if st.checkbox("Show Impact Grid map"):
             m = folium.Map(tiles="OpenStreetMap")
 
+            mode = st.selectbox(
+                "H3 map mode",
+                ["Hazard coverage", "Building count", "Building footprint intersection"],
+            )
+
             def style(feature):
-                percent = feature["properties"]["terrestrial_affected_pct"]
+                props = feature["properties"]
+                percent = props["terrestrial_affected_pct"]
+                if mode == "Building count":
+                    value = props.get("building_count")
+                    color = "#94a3b8" if value is None else "#fff7bc" if value == 0 else "#fe9929"
+                    return {
+                        "color": "#64748b",
+                        "weight": 0.5,
+                        "fillColor": color,
+                        "fillOpacity": 0.5,
+                    }
+                if mode == "Building footprint intersection":
+                    value = props.get("building_hazard_intersection_m2")
+                    color = "#94a3b8" if value is None else "#fff7bc" if value == 0 else "#d95f0e"
+                    return {
+                        "color": "#64748b",
+                        "weight": 0.5,
+                        "fillColor": color,
+                        "fillOpacity": 0.5,
+                    }
                 color = (
                     "#94a3b8"
                     if percent is None
@@ -108,6 +161,8 @@ def show_impact(root, source, report):
                         "terrestrial_area_ha",
                         "terrestrial_affected_pct",
                         "event_date",
+                        "building_count",
+                        "building_hazard_intersection_m2",
                     ],
                     aliases=[
                         "H3 cell",
@@ -116,10 +171,31 @@ def show_impact(root, source, report):
                         "Terrestrial area in AOI (ha)",
                         "Affected (%)",
                         "Event date",
+                        "Unique allocated buildings",
+                        "Building intersection (m²)",
                     ],
                     localize=True,
                 ),
             ).add_to(m)
+            for filename, name, color in [
+                ("buildings_aoi.geojson", "Mapped buildings", "#2563eb"),
+                (
+                    "buildings_intersecting_hazard.geojson",
+                    "Buildings intersecting hazard",
+                    "#7c3aed",
+                ),
+            ]:
+                candidate = folder / filename
+                if candidate.exists():
+                    folium.GeoJson(
+                        str(candidate),
+                        name=name,
+                        style_function=lambda _, shade=color: {
+                            "color": shade,
+                            "weight": 1,
+                            "fillOpacity": 0.15,
+                        },
+                    ).add_to(m)
             folium.GeoJson(
                 str(source / "flood.geojson"),
                 name="Native footprint",

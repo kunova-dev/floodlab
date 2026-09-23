@@ -38,7 +38,7 @@ def main() -> None:
         st.error(f"Configuration could not be loaded: {exc}")
         return
     st.sidebar.title("FLOODLAB")
-    st.sidebar.caption("EARTH OBSERVATION | v0.5a")
+    st.sidebar.caption("EARTH OBSERVATION | v0.5b")
     page = st.sidebar.radio(
         "Workspace", ["FLOOD EVENT", "FLOOD HISTORY", "FLOOD LAB", "FLOOD WATCH", "IMPACT"], index=0
     )
