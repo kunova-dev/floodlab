@@ -84,10 +84,11 @@ values are authoritative. H3 products are separately generated sidecars,
 joinable by `h3_index`, with their aggregation method and coverage/nodata
 state recorded.
 
-Environmental caches use a canonical identity including source checksum and
-version, AOI, grid, algorithm/configuration, reference period and schema.
-Receipts are atomically replaced. Footprint summaries reuse native processed
-context rather than reprocessing static source assets. The C3S/ESA CCI 2017
+Environmental cache helpers define a canonical identity including source checksum
+and version, AOI, grid, algorithm/configuration, reference period and schema.
+They are tested but are not yet invoked by the production Piura environmental
+runner. Footprint summaries reuse the in-memory native processed context within
+one run rather than reprocessing static source assets. The C3S/ESA CCI 2017
 land-cover choice and its annual-event-year limitation are documented in
 `ENVIRONMENT_DATA.md`; it remains unavailable until a verified subset receipt
 is present and is never silently replaced by modern land cover.
@@ -99,5 +100,7 @@ independently aggregated from native pixels, since means and medians cannot be
 reliably promoted from child summaries by simple averaging. The standard path
 rasterizes all selected H3 polygons once to a labelled native grid, then groups
 pixel-centre values by label. It records resolution, algorithm/version, source
-asset and variable checksums, native grid, nodata policy, timestamp, coverage,
-related resolutions and an output digest.
+asset, derived-data and metadata checksums, native grid, nodata policy, timestamp,
+coverage, related resolutions and an output digest. Controlled R4/R7 tests compare
+that assignment with the polygon reference; they are equivalence tests, not a
+production-scale performance benchmark.

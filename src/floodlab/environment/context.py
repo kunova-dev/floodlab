@@ -9,9 +9,10 @@ from rasterio.warp import transform_geom
 from scipy.ndimage import distance_transform_edt
 
 from floodlab.eo_core.context import aligned, vector_mask
-from floodlab.eo_core.pair_jobs import sha256_file
+from floodlab.eo_core.integrity import sha256_file
 
 from .aggregate import continuous_summary
+from .integrity import array_checksum, metadata_checksum
 from .model import CoverageStatus, EnvironmentalAsset, EnvironmentalVariable, TemporalRelationship
 
 
@@ -40,7 +41,9 @@ def load_verified_static_context(root: Path, profile: dict, aoi_geometry: dict) 
     result: dict = {"assets": [], "variables": [], "arrays": {}}
     inside = geometry_mask(
         [transform_geom("EPSG:4326", profile["crs"], aoi_geometry)],
-        out_shape=(profile["height"], profile["width"]), transform=profile["transform"], invert=True,
+        out_shape=(profile["height"], profile["width"]),
+        transform=profile["transform"],
+        invert=True,
     )
     for key in ("dem", "rivers"):
         entry = manifest[key]
@@ -52,7 +55,11 @@ def load_verified_static_context(root: Path, profile: dict, aoi_geometry: dict) 
         asset_id="copernicus-dem-glo30-piura",
         relationship=TemporalRelationship.STATIC,
     )
-    dem = aligned(folder / manifest["dem"]["file"], profile, categorical=False).filled(np.nan).astype("float32")
+    dem = (
+        aligned(folder / manifest["dem"]["file"], profile, categorical=False)
+        .filled(np.nan)
+        .astype("float32")
+    )
     y, x = np.gradient(dem, abs(profile["transform"].e), profile["transform"].a)
     slope = np.degrees(np.arctan(np.hypot(x, y))).astype("float32")
     rivers_asset = _asset(
@@ -65,15 +72,101 @@ def load_verified_static_context(root: Path, profile: dict, aoi_geometry: dict) 
         ~rivers, sampling=(abs(profile["transform"].e), profile["transform"].a)
     ).astype("float32")
     result["assets"] = [dem_asset, rivers_asset]
-    result["variables"] = [
-        EnvironmentalVariable("elevation_m", "Elevation", "continuous", "m", TemporalRelationship.STATIC, CoverageStatus.VALID, (dem_asset,), "aligned DEM", "v0.5e", spatial_processing="bilinear alignment to supplied reference grid", limitations=("DSM context; not HAND.",)),
-        EnvironmentalVariable("slope_degrees", "Slope", "continuous", "degrees", TemporalRelationship.STATIC, CoverageStatus.VALID, (dem_asset,), "numpy.gradient then arctan", "v0.5e", {"units": "degrees"}, "computed on supplied reference grid", limitations=("Derived from DSM; edge/nodata pixels excluded.",)),
-        EnvironmentalVariable("mapped_drainage_distance_m", "Distance to nearest mapped reach", "continuous", "m", TemporalRelationship.STATIC, CoverageStatus.VALID, (rivers_asset,), "Euclidean distance transform", "v0.5e", {"sampling": "reference grid metres"}, "rasterized mapped reaches on supplied reference grid", limitations=("Mapped-reach proximity only; not flow connectivity or HAND.",)),
+    transform = profile["transform"]
+    native_grid = {
+        "crs": str(profile["crs"]),
+        "width": profile["width"],
+        "height": profile["height"],
+        "transform": [transform.a, transform.b, transform.c, transform.d, transform.e, transform.f],
+    }
+    validity = (
+        "Finite aligned DEM pixels within the supplied AOI; invalid/nodata pixels are excluded."
+    )
+    variables = [
+        EnvironmentalVariable(
+            "elevation_m",
+            "Elevation",
+            "continuous",
+            "m",
+            TemporalRelationship.STATIC,
+            CoverageStatus.VALID,
+            (dem_asset,),
+            "aligned DEM",
+            "v0.5e",
+            spatial_processing="bilinear alignment to supplied reference grid",
+            native_grid=native_grid,
+            nodata_semantics=validity,
+            limitations=("DSM context; not HAND.",),
+        ),
+        EnvironmentalVariable(
+            "slope_degrees",
+            "Slope",
+            "continuous",
+            "degrees",
+            TemporalRelationship.STATIC,
+            CoverageStatus.VALID,
+            (dem_asset,),
+            "numpy.gradient then arctan",
+            "v0.5e",
+            {"units": "degrees"},
+            "computed on supplied reference grid",
+            native_grid=native_grid,
+            nodata_semantics=validity,
+            limitations=("Derived from DSM; edge/nodata pixels excluded.",),
+        ),
+        EnvironmentalVariable(
+            "mapped_drainage_distance_m",
+            "Distance to nearest mapped reach",
+            "continuous",
+            "m",
+            TemporalRelationship.STATIC,
+            CoverageStatus.VALID,
+            (rivers_asset,),
+            "Euclidean distance transform",
+            "v0.5e",
+            {"sampling": "reference grid metres"},
+            "rasterized mapped reaches on supplied reference grid",
+            native_grid=native_grid,
+            nodata_semantics=validity,
+            limitations=("Mapped-reach proximity only; not flow connectivity or HAND.",),
+        ),
     ]
-    result["arrays"] = {"elevation_m": dem, "slope_degrees": slope, "mapped_drainage_distance_m": drainage_distance, "valid": np.isfinite(dem) & inside, "aoi": inside}
+    valid = np.isfinite(dem) & inside
+    arrays = {
+        "elevation_m": dem,
+        "slope_degrees": slope,
+        "mapped_drainage_distance_m": drainage_distance,
+        "valid": valid,
+        "aoi": inside,
+    }
+    variables_with_data = [
+        EnvironmentalVariable(
+            **{
+                **variable.__dict__,
+                "derived_data_checksum": array_checksum(arrays[variable.variable_id], valid),
+            }
+        )
+        for variable in variables
+    ]
+    result["variables"] = [
+        EnvironmentalVariable(
+            **{
+                **variable.__dict__,
+                "metadata_checksum": metadata_checksum(variable.to_dict()),
+            }
+        )
+        for variable in variables_with_data
+    ]
+    result["variable_metadata_checksums"] = {
+        variable.variable_id: variable.metadata_checksum for variable in result["variables"]
+    }
+    result["arrays"] = arrays
     return result
 
 
 def summarize_continuous_context(context: dict, domain: np.ndarray) -> dict:
     valid = context["arrays"]["valid"]
-    return {name: continuous_summary(context["arrays"][name], valid, domain) for name in ("elevation_m", "slope_degrees", "mapped_drainage_distance_m")}
+    return {
+        name: continuous_summary(context["arrays"][name], valid, domain)
+        for name in ("elevation_m", "slope_degrees", "mapped_drainage_distance_m")
+    }

@@ -1,10 +1,11 @@
 """Contracts for environmental providers; providers do not know hazards or exposure."""
 
-from collections.abc import Protocol
+from typing import Protocol, runtime_checkable
 
 from .model import EnvironmentalAsset, EnvironmentalVariable
 
 
+@runtime_checkable
 class EnvironmentalProvider(Protocol):
     provider_id: str
 

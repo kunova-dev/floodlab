@@ -262,6 +262,22 @@ def test_overture_failed_primary_is_retained_when_duckdb_fallback_succeeds(tmp_p
     assert [attempt["status"] for attempt in metadata["attempts"]] == ["no_data", "retrieved"]
 
 
+def test_overture_legacy_retrieved_receipt_normalizes_stale_primary_diagnostic(tmp_path, monkeypatch):
+    provider = OvertureBuildingProvider(tmp_path, executable="fixture-overture")
+    aoi = box(-80.65, -5.22, -80.61, -5.18)
+    digest = __import__("hashlib").sha256((provider.provider + provider.release + aoi.wkb_hex).encode()).hexdigest()[:24]
+    folder = tmp_path / "overture-buildings" / digest
+    folder.mkdir(parents=True)
+    (folder / "buildings.parquet").write_bytes(b"fixture")
+    (folder / "provenance.json").write_text(json.dumps({"status": "retrieved", "diagnostic": "No data found", "retrieval_path": "duckdb-cloud-geoparquet"}), encoding="utf-8")
+    building = Building("cached", box(-80.64, -5.21, -80.63, -5.20), "fixture", "1")
+    monkeypatch.setattr(provider, "_normalized", lambda *args: [building])
+    buildings, metadata = provider.retrieve(aoi)
+    assert len(buildings) == metadata["feature_count"] == 1
+    assert metadata["status"] == "retrieved" and metadata["diagnostic"] is None
+    assert [item["status"] for item in metadata["attempts"]] == ["no_data", "retrieved"]
+
+
 def test_non_flood_building_provider_path_has_no_processing_imports():
     code = """
 import builtins,sys

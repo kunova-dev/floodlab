@@ -4,7 +4,6 @@ import json
 import time
 from dataclasses import replace
 from datetime import UTC, datetime
-from hashlib import sha256
 from pathlib import Path
 from uuid import uuid4
 
@@ -15,6 +14,7 @@ from floodlab import __version__
 from .aoi import AOI
 from .catalogue import Acquisition
 from .diagnostics import inspect_job
+from .integrity import sha256_file
 from .openeo_backend import BackendSettings, OpenEOBackend, process_graph
 from .pairs import assess_pair
 from .raster import align_to_reference, pair_qc, raster_qc
@@ -84,14 +84,6 @@ def load_plan(path: Path, root: Path) -> tuple[dict, BackendSettings]:
     if not assessment.compatible:
         raise ValueError("Plan contains incompatible observations")
     return plan, settings
-
-
-def sha256_file(path: Path) -> str:
-    digest = sha256()
-    with path.open("rb") as stream:
-        for block in iter(lambda: stream.read(1024 * 1024), b""):
-            digest.update(block)
-    return digest.hexdigest()
 
 
 def replace_with_retry(source: Path, target: Path, sleep=time.sleep) -> None:

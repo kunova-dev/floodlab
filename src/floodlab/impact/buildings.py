@@ -58,11 +58,11 @@ class OvertureBuildingProvider:
         receipt = folder / "provenance.json"
         if receipt.exists():
             meta = json.loads(receipt.read_text(encoding="utf-8"))
-            if meta.get("status") == "no_data" and (folder / "buildings.parquet").exists():
-                failed_attempt = {
-                    "method": "overturemaps-cli-stac",
-                    "status": "no_data",
-                    "diagnostic": meta.get("diagnostic", "No data found"),
+            if (folder / "buildings.parquet").exists() and (
+                meta.get("status") == "no_data" or meta.get("diagnostic")
+            ):
+                failed_attempt = next((attempt for attempt in meta.get("attempts", []) if attempt.get("status") == "no_data"), None) or {
+                    "method": "overturemaps-cli-stac", "status": "no_data", "diagnostic": meta.get("diagnostic", "No data found")
                 }
                 meta.update(
                     {
@@ -76,6 +76,8 @@ class OvertureBuildingProvider:
                 )
                 receipt.write_text(json.dumps(meta, sort_keys=True), encoding="utf-8")
                 buildings = self._normalized(folder, meta)
+                meta["feature_count"] = len(buildings)
+                receipt.write_text(json.dumps(meta, sort_keys=True), encoding="utf-8")
                 return buildings, {
                     **meta,
                     "feature_count": len(buildings),

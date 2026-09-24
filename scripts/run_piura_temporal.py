@@ -23,6 +23,7 @@ from floodlab.hazards.flood.temporal import (
     observed_inundation,
     temporal_products,
 )
+from floodlab.hazards.flood.temporal_export import binary_export_values, count_export_values
 from floodlab.impact.engine import analyse_impact
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -149,13 +150,14 @@ def main():
             profile["crs"],
             area * 10000,
         )
-    for name, values, dtype, nodata in [
-        ("maximum-observed-single-date", products["maximum_single_date"], "uint8", 255),
-        ("event-observed-temporal-union", products["event_observed_union"], "uint8", 255),
-        ("observed-flood-count", products["observed_flood_count"], "uint16", 65535),
-        ("valid-observation-count", products["valid_observation_count"], "uint16", 65535),
+    aggregate_exports = [
+        ("maximum-observed-single-date", binary_export_values(products["maximum_single_date"], valids[products["maximum_index"]]), "uint8", 255),
+        ("event-observed-temporal-union", binary_export_values(products["event_observed_union"], products["valid_observation_count"] > 0), "uint8", 255),
+        ("observed-flood-count", count_export_values(products["observed_flood_count"], products["valid_observation_count"] > 0), "uint16", 65535),
+        ("valid-observation-count", count_export_values(products["valid_observation_count"], products["valid_observation_count"] > 0), "uint16", 65535),
         ("observation-frequency", products["observed_fraction"], "float32", np.nan),
-    ]:
+    ]
+    for name, values, dtype, nodata in aggregate_exports:
         pr = profile.copy()
         pr.update(count=1, dtype=dtype, nodata=nodata, compress="deflate")
         with rasterio.open(output / f"{name}.tif", "w", **pr) as dst:

@@ -56,6 +56,10 @@ class EnvironmentalVariable:
     spatial_processing: str | None = None
     temporal_processing: str | None = None
     checksum: str | None = None
+    derived_data_checksum: str | None = None
+    metadata_checksum: str | None = None
+    native_grid: dict | None = None
+    nodata_semantics: str | None = None
     limitations: tuple[str, ...] = ()
 
     def __post_init__(self):
@@ -65,8 +69,8 @@ class EnvironmentalVariable:
             self.coverage_status == CoverageStatus.VALID
             and self.temporal_relationship == TemporalRelationship.EVENT_TIME
             and not any(
-            asset.temporal_relationship == TemporalRelationship.EVENT_TIME
-            for asset in self.upstream_assets
+                asset.temporal_relationship == TemporalRelationship.EVENT_TIME
+                for asset in self.upstream_assets
             )
         ):
             raise ValueError("EVENT_TIME cannot be inferred from a non-event asset")

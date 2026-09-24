@@ -12,6 +12,7 @@ from floodlab.hazards.flood.temporal import (
     observed_inundation,
     temporal_products,
 )
+from floodlab.hazards.flood.temporal_export import binary_export_values, count_export_values
 
 
 def observation(product_id, timestamp, values, valid=None):
@@ -72,6 +73,11 @@ def test_baseline_partial_coverage_and_temporal_counts():
     assert products["valid_observation_count"].tolist() == [[1, 1, 0]]
     assert np.isnan(products["observed_fraction"][0, 2])
     assert products["maximum_index"] == 0
+    union = binary_export_values(products["event_observed_union"], products["valid_observation_count"] > 0)
+    maximum = binary_export_values(products["maximum_single_date"], valid)
+    assert union.tolist() == [[1, 1, 255]]
+    assert maximum.tolist() == [[1, 255, 255]]
+    assert count_export_values(products["valid_observation_count"], products["valid_observation_count"] > 0).tolist() == [[1, 1, 65535]]
 
 
 def test_baseline_requires_multiple_shared_grid_observations():

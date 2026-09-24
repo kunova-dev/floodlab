@@ -12,7 +12,7 @@ from rasterio.warp import transform_geom
 from shapely import make_valid
 from shapely.geometry import mapping, shape
 
-from .pair_jobs import sha256_file
+from .integrity import sha256_file
 
 
 def read_sources(folder, years):

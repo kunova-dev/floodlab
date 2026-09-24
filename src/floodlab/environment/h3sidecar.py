@@ -52,7 +52,7 @@ def polygon_reference_sidecar(aoi_geojson, profile, arrays, *, resolution):
     return features
 
 
-def environmental_h3_sidecar(aoi_geojson: dict, profile: dict, arrays: dict, *, resolution: int, source_checksums: tuple[str, ...] = (), variable_checksums: tuple[str, ...] = (), generated_utc: str | None = None, related_resolutions: tuple[int, ...] = ()) -> dict:
+def environmental_h3_sidecar(aoi_geojson: dict, profile: dict, arrays: dict, *, resolution: int, source_checksums: tuple[str, ...] = (), variable_checksums: tuple[str, ...] = (), variable_metadata_checksums: tuple[str, ...] = (), generated_utc: str | None = None, related_resolutions: tuple[int, ...] = ()) -> dict:
     """Rasterize all H3 cells once, then calculate per-label native-pixel statistics."""
     if type(resolution) is not int or not 0 <= resolution <= 10:
         raise ValueError("H3 resolution must be an integer from 0 to 10")
@@ -73,7 +73,8 @@ def environmental_h3_sidecar(aoi_geojson: dict, profile: dict, arrays: dict, *, 
         "h3_resolution": resolution, "aggregation_algorithm": ALGORITHM, "aggregation_algorithm_version": ALGORITHM_VERSION,
         "aggregation_method": "native pixel-centre assignment using one labelled H3 raster", "native_data_authoritative": True,
         "native_grid": _profile_spec(profile), "source_environmental_asset_checksums": list(source_checksums),
-        "source_environmental_variable_checksums": list(variable_checksums),
+        "source_environmental_derived_data_checksums": list(variable_checksums),
+        "source_environmental_variable_metadata_checksums": list(variable_metadata_checksums),
         "nodata_policy": "Native invalid/nodata pixels are excluded; no observation is not zero.",
         "generated_utc": generated_utc or datetime.now(UTC).isoformat(), "related_resolutions": sorted(set(related_resolutions)),
         "candidate_h3_cells": len(cells), "valid_h3_cells": sum(f["properties"]["coverage_status"] == "VALID" for f in features),
